@@ -1,15 +1,29 @@
 from ast import arg
 import sys
+import datetime
+from datetime import date, timedelta
 import fdb
 import mysql.connector
 from mysql.connector import Error
 
+def validate(date_text):
+        try:
+            datetime.datetime.strptime(date_text, '%Y.%m.%d')
+        except ValueError:
+            raise ValueError("dátum formátum: YYYY.MM.DD")
+
 def main():
 
-    if len(sys.argv) > 2:
+    yesterday = date.today() - timedelta(days=1)
+
+    if len(sys.argv) == 3:
         startDate = sys.argv[1]
         endDate = sys.argv[2]
-        print(startDate, " ", endDate)
+        validate(startDate)
+        validate(endDate)
+    else:
+        startDate = yesterday.strftime("%Y.%m.%d")
+        endDate = startDate
 
 
     """ firebird  """
