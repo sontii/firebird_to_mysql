@@ -17,8 +17,8 @@ Use with cron daily run.
 If we have missing data, we can run with specific dates arguments:
 python python-fb-mysql.py YYYY.MM.dd YYYY.MM.dd
 first argument is start date the second is the end date.
-Start date cannot be laater than end date.
-Use correct date format, ot it will raise date error.
+Start date cannot be later than end date.
+Use correct date format, or it will raise error.
 
 ---
 
