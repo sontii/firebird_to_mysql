@@ -24,8 +24,10 @@ Use correct date format, or it will raise error.
 
 #### **Requirements:**
 
-fdb==2.0.2
-mysql_connector_repackaged==0.3.1
+For install reuieqd packeges: pip3 install -r requirements.txt
+
+- fdb==2.0.2
+- mysql_connector_repackaged==0.3.1
 
 ---
 
