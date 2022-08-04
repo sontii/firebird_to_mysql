@@ -1,9 +1,7 @@
-from ast import arg
 import sys
 import datetime
 from datetime import date, timedelta
 import logging
-from attr import s
 import fdb
 import mysql.connector
 from mysql.connector import Error
@@ -18,6 +16,8 @@ logging.basicConfig(filename="logfile.log", encoding='utf-8', level=logging.INFO
 """ központ lekérés
 "select sum(bteny_ert), sum(nteny_ert), sum(nyilv_ert) from blokk_tet where datum = '" & Format(tegnapt, "yyyy.MM.dd") & "' and egyseg='" & boltkod & "'
 -- """
+
+boltok = ["001", "002", "003", "004", "005", "006", "007", "008", "009"]
 
 
 """ check argv date is valid  """
@@ -49,16 +49,18 @@ def main():
 
 
     """ firebird read """
+    
     try:
         con = fdb.connect(
             host='192.168.103.51', database='D:\Program Files\Laurel Kft\AIR Application\database\ibukr.gdb',
             user='SYSDBA', password='masterkey' 
         )
         cur = con.cursor()
-        if havingARGV == False:
-            SELECT = "SELECT SUM(bteny_ert), SUM(nteny_ert), SUM(nyilv_ert) FROM blokk_tet WHERE datum = '%s' AND egyseg = '001'" % endDate
-        else:
-            SELECT = f"SELECT SUM(bteny_ert), SUM(nteny_ert), SUM(nyilv_ert) from blokk_tet where datum '{startDate}' between '{endDate}' and egyseg = 001"
+        for bolt in boltok:
+            if havingARGV == False:
+                SELECT = f"SELECT SUM(bteny_ert), SUM(nteny_ert), SUM(nyilv_ert) FROM blokk_tet WHERE datum = '{endDate}' AND egyseg = '{bolt}'"
+            else:
+                SELECT = f"SELECT SUM(bteny_ert), SUM(nteny_ert), SUM(nyilv_ert) from blokk_tet where datum '{startDate}' between '{endDate}' and egyseg = '{bolt}'"
         cur.execute(SELECT)
         for row in cur:
             print(row)
