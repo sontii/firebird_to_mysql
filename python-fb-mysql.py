@@ -64,7 +64,6 @@ def connectFdb (startDate, endDate):
         cur = con.cursor()
         for bolt in boltok:
             SELECT = f"SELECT SUM(bteny_ert), SUM(nteny_ert), SUM(nyilv_ert) FROM blokk_tet WHERE datum between '{startDate}' AND '{endDate}' AND egyseg = '{bolt}'"
-            """ SELECT = f"SELECT SUM(bteny_ert), SUM(nteny_ert), SUM(nyilv_ert) FROM blokk_tet WHERE datum = '{endDate}' AND egyseg = '{bolt}'" """
 
             cur.execute(SELECT)
             for row in cur:
