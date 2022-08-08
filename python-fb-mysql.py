@@ -1,4 +1,5 @@
 import sys
+import csv
 import datetime
 from datetime import date, timedelta
 import logging
@@ -28,49 +29,7 @@ def validate(date_text):
             logging.error(" " + datetime.datetime.now().strftime('%Y.%m.%d %H:%M:%S') + " dátum formátum: YYYY.MM.DD")
             exit(1)
 
-def main():
-    havingARGV = False
-    yesterday = date.today() - timedelta(days=1)
-
-    """ if we have argv """
-    if len(sys.argv) == 3:
-        startDate = sys.argv[1]
-        endDate = sys.argv[2]
-        validate(startDate)
-        validate(endDate)
-        havingARGV = True
-        if startDate > endDate:
-            logging.error(" " + datetime.datetime.now().strftime('%Y.%m.%d %H:%M:%S') + " A kezdő dátum nem lehet nagyobb mint a vég dátum")
-            exit(1)
-    else:
-
-        startDate = yesterday.strftime("%Y.%m.%d")
-        endDate = startDate
-
-
-    """ firebird read """
-    
-    try:
-        con = fdb.connect(
-            host='192.168.103.51', database='D:\Program Files\Laurel Kft\AIR Application\database\ibukr.gdb',
-            user='SYSDBA', password='masterkey' 
-        )
-        cur = con.cursor()
-        for bolt in boltok:
-            if havingARGV == False:
-                SELECT = f"SELECT SUM(bteny_ert), SUM(nteny_ert), SUM(nyilv_ert) FROM blokk_tet WHERE datum = '{endDate}' AND egyseg = '{bolt}'"
-            else:
-                SELECT = f"SELECT SUM(bteny_ert), SUM(nteny_ert), SUM(nyilv_ert) from blokk_tet where datum '{startDate}' between '{endDate}' and egyseg = '{bolt}'"
-        cur.execute(SELECT)
-        for row in cur:
-            print(row)
-
-    except Error as e:
-        logging.error(" " + datetime.datetime.now().strftime('%Y.%m.%d %H:%M:%S') + " Error while connecting to Firebird-SQL", e)
-        exit(1)
-
-
-    """ mysql write"""
+def connectMysql ():
     try:
         connection = mysql.connector.connect(host='192.168.103.101',
                                             database='lazar',
@@ -92,6 +51,51 @@ def main():
             cursor.close()
             connection.close()
             logging.info(" " + datetime.datetime.now().strftime('%Y.%m.%d %H:%M:%S') + " MySQL connection is closed")
+
+
+def connectFdb (startDate, endDate):
+    file = open('temp.csv', 'w', encoding="UTF8", newline='')
+    writer = csv.writer(file)
+    try:
+        con = fdb.connect(
+            host='192.168.103.51', database='D:\Program Files\Laurel Kft\AIR Application\database\ibukr.gdb',
+            user='SYSDBA', password='masterkey' 
+        )
+        cur = con.cursor()
+        for bolt in boltok:
+            SELECT = f"SELECT SUM(bteny_ert), SUM(nteny_ert), SUM(nyilv_ert) FROM blokk_tet WHERE datum between '{startDate}' AND '{endDate}' AND egyseg = '{bolt}'"
+            """ SELECT = f"SELECT SUM(bteny_ert), SUM(nteny_ert), SUM(nyilv_ert) FROM blokk_tet WHERE datum = '{endDate}' AND egyseg = '{bolt}'" """
+
+            cur.execute(SELECT)
+            for row in cur:
+                writer.writerow([bolt] + [row[0]] + [row[1]] + [row[2]])
+                
+
+    except Error as e:
+        logging.error(" " + datetime.datetime.now().strftime('%Y.%m.%d %H:%M:%S') + " Error while connecting to Firebird-SQL", e)
+        exit(1)
+    
+    file.close()
+
+def main():
+    yesterday = date.today() - timedelta(days=1)
+
+    """ if we have argv """
+    if len(sys.argv) == 3:
+        startDate = sys.argv[1]
+        endDate = sys.argv[2]
+        validate(startDate)
+        validate(endDate)
+        if startDate > endDate:
+            logging.error(" " + datetime.datetime.now().strftime('%Y.%m.%d %H:%M:%S') + " A kezdő dátum nem lehet nagyobb mint a vég dátum")
+            exit(1)
+    else:
+
+        startDate = yesterday.strftime("%Y.%m.%d")
+        endDate = startDate    
+
+    connectFdb (startDate, endDate)
+    
 
 if __name__ == "__main__":
     main()
