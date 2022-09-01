@@ -6,16 +6,16 @@
 
 ## Description:
 
-This application stand for copy daily sum data to BI sql system
+This application stand for copy daily data to BI sql system.
 Written in python.
 
 ---
 
 ### **How to use:**
 
-Use with cron daily run.
-If we have missing data, we can run with specific dates arguments:
-python python-fb-mysql.py YYYY.MM.dd YYYY.MM.dd
+Use with cron, daily run.
+If we have missing data, we can run with specific date arguments:
+python python-fb-mysql.py arg1 arg2 format(YYYY.MM.dd)
 first argument is start date the second is the end date.
 Start date cannot be later than end date.
 Use correct date format, or it will raise error.
@@ -28,6 +28,7 @@ For install reuieqd packeges: pip3 install -r requirements.txt
 
 - fdb==2.0.2
 - mysql_connector_repackaged==0.3.1
+- python-dotenv==0.20.0
 
 ---
 
@@ -36,12 +37,15 @@ For install reuieqd packeges: pip3 install -r requirements.txt
 - python-fb-mysql.py
 - Readme.md - you are here
 - reqirement.txt
+- log
+- .env
+- .gitignore
+- temp.csv
 
 ---
 
 ### **Database:**
 
-- Laurel : 192.168.103.51 - D:\Program Files\Laurel Kft\AIR Application\database\ibukr.gdb (windows)
-- MySQL BI: 192.168.103.101 (linux)
+- at .env file
 
 ---
