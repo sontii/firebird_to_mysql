@@ -7,7 +7,7 @@ import fdb
 import mysql.connector
 from mysql.connector import Error
 
-logging.basicConfig(filename="logfile.log", encoding='utf-8', level=logging.INFO)
+logging.basicConfig(filename="log/logfile.log", encoding='utf-8', level=logging.INFO)
 
 
 """ bolti lekérés
@@ -22,7 +22,7 @@ boltok = ["001", "002", "003", "004", "005", "006", "007", "008", "009"]
 
 
 """ check argv date is valid  """
-def validate(date_text):    
+def validate(date_text):
         try:
             datetime.datetime.strptime(date_text, '%Y.%m.%d')
         except ValueError:
@@ -42,7 +42,7 @@ def connectMysql ():
         records = cursor.fetchall()
         """ for row in records:
             print(row) """
-        
+
     except Error as e:
         logging.error(" " + datetime.datetime.now().strftime('%Y.%m.%d %H:%M:%S') + " Error while connecting to MySQL", e)
         exit(1)
@@ -68,12 +68,12 @@ def connectFdb (startDate, endDate):
             cur.execute(SELECT)
             for row in cur:
                 writer.writerow([bolt] + [row[0]] + [row[1]] + [row[2]])
-                
+
 
     except Error as e:
         logging.error(" " + datetime.datetime.now().strftime('%Y.%m.%d %H:%M:%S') + " Error while connecting to Firebird-SQL", e)
         exit(1)
-    
+
     file.close()
 
 def main():
@@ -91,10 +91,10 @@ def main():
     else:
 
         startDate = yesterday.strftime("%Y.%m.%d")
-        endDate = startDate    
+        endDate = startDate
 
     connectFdb (startDate, endDate)
-    
+
 
 if __name__ == "__main__":
     main()
