@@ -14,8 +14,10 @@ Written in python.
 ### **How to use:**
 
 Use with cron, daily run.
+python main.py
+
 If we have missing data, we can run with specific date arguments:
-python python-fb-mysql.py arg1 arg2 format(YYYY.MM.dd)
+python main.py arg1 arg2 format(YYYY.MM.dd)
 first argument is start date the second is the end date.
 Start date cannot be later than end date.
 Use correct date format, or it will raise error.
@@ -34,7 +36,10 @@ For install reuieqd packeges: pip3 install -r requirements.txt
 
 ### **Files and folders:**
 
-- python-fb-mysql.py
+- main.py
+- fb_conn.py
+- mysql_conn.py
+- errormail.py
 - Readme.md - you are here
 - reqirement.txt
 - log
