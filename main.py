@@ -3,8 +3,9 @@ import datetime
 from datetime import date, timedelta
 import logging
 
-from fb_conn import *
-from mysql_conn import *
+from fb_aru import *
+from fb_forgalom import *
+from my_aru import *
 
 logging.basicConfig(filename="log/logfile.log", encoding='utf-8', level=logging.INFO)
 
@@ -37,7 +38,15 @@ def main():
         startDate = yesterday.strftime("%Y.%m.%d")
         endDate = startDate
 
-    connectFdb (startDate, endDate)
+    getForgalom (startDate, endDate)
+
+### TODO
+### getAru (mysqlLastItem, fbLastItem)
+### aruToMysql (csv -> to  mysql)
+### forgalomToMysql ()
+
+
+
 
 
 if __name__ == "__main__":
