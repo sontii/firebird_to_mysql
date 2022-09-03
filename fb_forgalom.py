@@ -24,9 +24,10 @@ for bolt in envBoltok.split(","):
     boltok.append(bolt)
 
 
-def connectFdb (startDate, endDate):
-    file = open('temp.csv', 'w', encoding="UTF8", newline='')
-    writer = csv.writer(file)
+def getForgalom (startDate, endDate):
+    fileForgalom = open('forgalom_temp.csv', 'w', encoding="UTF8", newline='')
+    writerForgalom = csv.writer(fileForgalom)
+    
     try:
         con = fdb.connect(
             host=fbHost, database=fbData,
@@ -38,7 +39,7 @@ def connectFdb (startDate, endDate):
             
             cur.execute(SELECT)
             for row in cur:
-                writer.writerow([bolt] + [row[0]] + [row[1]] + [row[2]])
+                writerForgalom.writerow([bolt] + [row[0]] + [row[1]] + [row[2]])
 
 
     except Exception as err:
@@ -46,4 +47,4 @@ def connectFdb (startDate, endDate):
         errorMail(err)
         exit(1)
 
-    file.close()
+    fileForgalom.close()

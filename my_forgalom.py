@@ -16,7 +16,10 @@ mysqlData = os.getenv("MYSQLDATA")
 mysqlUser = os.getenv("MYSQLUSER")
 mysqlPass = os.getenv("MYSQLPASS")
 
-def connectMysql ():
+def forgalomToMysql ():
+    fileForgalom = open('forgalom_temp.csv', 'w', encoding="UTF8", newline='')
+    writerForgalom = csv.writer(fileForgalom)
+
     try:
         connection = mysql.connector.connect(host=mysqlHost,
                                             database=mysqlData,
@@ -28,7 +31,7 @@ def connectMysql ():
         result = cursor.execute(forgalom_Query)
         records = cursor.fetchall()
         """ for row in records:
-            print(row) """
+            writerForgalom.writerow([bolt] + [row[0]] + [row[1]] + [row[2]]) """
 
     except Exception as err:
         logging.error(" " + datetime.now().strftime('%Y.%m.%d %H:%M:%S') + " Error while connecting to MySQL " + f"{err}")
@@ -39,3 +42,5 @@ def connectMysql ():
             cursor.close()
             connection.close()
             logging.info(" " + datetime.now().strftime('%Y.%m.%d %H:%M:%S') + " MySQL connection is closed")
+    
+    fileForgalom.close()
