@@ -1,23 +1,46 @@
+from mysql_scripts.my_aru import *
+from fb_scipts.get_lastaru_fb import *
+from fb_scipts.get_forgalom import *
+from fb_scipts.get_aru import *
+from mysql_scripts.get_lastaru_my import *
 import sys
 import datetime
 from datetime import date, timedelta
 import logging
+from dotenv import load_dotenv
 
-from fb_aru import *
-from fb_forgalom import *
-from my_aru import *
+load_dotenv()
 
-logging.basicConfig(filename="log/logfile.log", encoding='utf-8', level=logging.INFO)
+logging.basicConfig(filename="log/logfile.log",
+                    encoding='utf-8', level=logging.INFO)
 
+# enviroment variables setup
+fbHost = os.getenv("FBHOST")
+fbData = os.getenv("FBDATA")
+fbUser = os.getenv("FBUSER")
+fbPass = os.getenv("FBPASS")
+
+mysqlHost = os.getenv("MYSQLHOST")
+mysqlData = os.getenv("MYSQLDATA")
+mysqlUser = os.getenv("MYSQLUSER")
+mysqlPass = os.getenv("MYSQLPASS")
+
+envBoltok = os.getenv("BOLTOK")
+
+boltok = []
+for bolt in envBoltok.split(","):
+    boltok.append(bolt)
 
 # check argv date is valid
-def validate(date_text):
-        try:
-            datetime.datetime.strptime(date_text, '%Y.%m.%d')
-        except ValueError:
-            logging.error(" " + datetime.datetime.now().strftime('%Y.%m.%d %H:%M:%S') + " dátum formátum: YYYY.MM.DD")
-            exit(1)
 
+
+def validate(date_text):
+    try:
+        datetime.datetime.strptime(date_text, '%Y.%m.%d')
+    except ValueError:
+        logging.error(" " + datetime.datetime.now().strftime(
+            '%Y.%m.%d %H:%M:%S') + " dátum formátum: YYYY.MM.DD")
+        exit(1)
 
 
 def main():
@@ -31,22 +54,24 @@ def main():
         validate(startDate)
         validate(endDate)
         if startDate > endDate:
-            logging.error(" " + datetime.datetime.now().strftime('%Y.%m.%d %H:%M:%S') + " A kezdő dátum nem lehet nagyobb mint a vég dátum")
+            logging.error(" " + datetime.datetime.now().strftime('%Y.%m.%d %H:%M:%S') +
+                          " A kezdő dátum nem lehet nagyobb mint a vég dátum")
             exit(1)
     else:
 
         startDate = yesterday.strftime("%Y.%m.%d")
         endDate = startDate
 
-    getForgalom (startDate, endDate)
+    lastIdFb = getLastAruLaurel(fbHost, fbData, fbUser, fbPass)
+    lastIdMysql = getLastaruMysql(mysqlHost, mysqlData, mysqlUser, mysqlPass)
+    print(lastIdMysql)
 
-### TODO
+# TODO
+### getLastIDs - done
 ### getAru (mysqlLastItem, fbLastItem)
-### aruToMysql (csv -> to  mysql)
+# aruToMysql (csv -> to  mysql)
+##getForgalom (startDate, endDate)
 ### forgalomToMysql ()
-
-
-
 
 
 if __name__ == "__main__":

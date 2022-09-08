@@ -11,10 +11,7 @@ logging.basicConfig(filename="log/logfile.log", encoding='utf-8', level=logging.
 
 load_dotenv()
 
-mysqlHost = os.getenv("MYSQLHOST")
-mysqlData = os.getenv("MYSQLDATA")
-mysqlUser = os.getenv("MYSQLUSER")
-mysqlPass = os.getenv("MYSQLPASS")
+
 
 def aruToMysql ():
     
