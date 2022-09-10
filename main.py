@@ -1,4 +1,4 @@
-from mysql_scripts.my_aru import *
+from mysql_scripts.csv_to_my_aru import *
 from fb_scipts.get_lastaru_fb import *
 from fb_scipts.get_forgalom import *
 from fb_scipts.get_aru import *
@@ -47,7 +47,7 @@ def main():
 
     yesterday = date.today() - timedelta(days=1)
 
-    """ if we have argv """
+    # if we have argv
     if len(sys.argv) == 3:
         startDate = sys.argv[1]
         endDate = sys.argv[2]
@@ -64,12 +64,13 @@ def main():
 
     lastIdFb = getLastAruLaurel(fbHost, fbData, fbUser, fbPass)
     lastIdMysql = getLastaruMysql(mysqlHost, mysqlData, mysqlUser, mysqlPass)
-    print(lastIdMysql)
+
+    getAru(lastIdFb, lastIdMysql)
 
 # TODO
 ### getLastIDs - done
 ### getAru (mysqlLastItem, fbLastItem)
-# aruToMysql (csv -> to  mysql)
+# aruToMysql(mysqlHost, mysqlData, mysqlUser, mysqlPass) csv -> to  mysql
 ##getForgalom (startDate, endDate)
 ### forgalomToMysql ()
 

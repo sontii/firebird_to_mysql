@@ -15,14 +15,17 @@ def getLastaruMysql(mysqlHost, mysqlData, mysqlUser, mysqlPass):
         connection = mysql.connector.connect(host=mysqlHost,
                                              database=mysqlData,
                                              user=mysqlUser,
-                                             password=mysqlPass)
+                                             password=mysqlPass,
+                                             auth_plugin='mysql_native_password')
 
         cursor = connection.cursor()
         cursor.execute("SELECT max(id) FROM cikk")
-        lastID = 11
-        """ for row in cursor.fetchone():
-            print("result " + row + " row")
-            lastID = row """
+
+        for row in cursor.fetchone():
+            if row is None:
+                row = "0"
+
+            lastID = row
 
     except Exception as err:
         logging.error(" " + datetime.now().strftime('%Y.%m.%d %H:%M:%S') +
