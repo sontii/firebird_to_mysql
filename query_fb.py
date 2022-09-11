@@ -1,0 +1,43 @@
+from errormail import *
+import datetime
+import logging
+import fdb
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# enviroment variables setup
+fbHost = os.getenv("FBHOST")
+fbData = os.getenv("FBDATA")
+fbUser = os.getenv("FBUSER")
+fbPass = os.getenv("FBPASS")
+
+logging.basicConfig(filename="log/logfile.log",
+                    encoding='utf-8', level=logging.INFO)
+
+
+def queryFb(querySelect, boltok, fetchType):
+
+    try:
+        connection = fdb.connect(
+            host=fbHost, database=fbData,
+            user=fbUser, password=fbPass
+        )
+        cursor = connection.cursor()
+
+        cursor.execute(querySelect)
+
+        if fetchType == "one":
+            for row in cursor.fetchone():
+                result = row
+        else:
+            result = cursor.fetchall()
+
+        connection.close()
+        return (result)
+
+    except Exception as err:
+        logging.error(" " + datetime.datetime.dstnow().strftime('%Y.%m.%d %H:%M:%S') +
+                      " Error while connecting to Firebird-SQL " + f"{err}")
+        errorMail(err)
+        exit(1)
