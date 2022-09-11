@@ -3,6 +3,7 @@ from fb_scipts.get_lastaru_fb import *
 from fb_scipts.get_forgalom import *
 from fb_scipts.get_aru import *
 from mysql_scripts.get_lastaru_my import *
+from fb_scipts.fb_query import *
 import sys
 import datetime
 from datetime import date, timedelta
@@ -30,6 +31,8 @@ envBoltok = os.getenv("BOLTOK")
 boltok = []
 for bolt in envBoltok.split(","):
     boltok.append(bolt)
+
+selectLastAruId= ("SELECT FIRST 1 ID FROM CIK ORDER BY ID DESC")
 
 # check argv date is valid
 
@@ -62,7 +65,7 @@ def main():
         startDate = yesterday.strftime("%Y.%m.%d")
         endDate = startDate
 
-    lastIdFb = getLastAruLaurel(fbHost, fbData, fbUser, fbPass)
+    lastIdFb = fbQuery(fbHost, fbData, fbUser, fbPass, selectLastAruId)
     lastIdMysql = getLastaruMysql(mysqlHost, mysqlData, mysqlUser, mysqlPass)
 
     getAru(lastIdFb, lastIdMysql)
