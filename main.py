@@ -1,6 +1,6 @@
 import sys
 import datetime
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 import logging
 from dotenv import load_dotenv
 
@@ -25,7 +25,7 @@ def validate(date_text):
     try:
         datetime.datetime.strptime(date_text, '%Y.%m.%d')
     except ValueError:
-        logging.error(" " + datetime.datetime.now().strftime(
+        logging.error(" " + datetime.now().strftime(
             '%Y.%m.%d %H:%M:%S') + " dátum formátum: YYYY.MM.DD")
         exit(1)
 
@@ -41,7 +41,7 @@ def main():
         validate(startDate)
         validate(endDate)
         if startDate > endDate:
-            logging.error(" " + datetime.datetime.now().strftime('%Y.%m.%d %H:%M:%S') +
+            logging.error(" " + datetime.now().strftime('%Y.%m.%d %H:%M:%S') +
                           " A kezdő dátum nem lehet nagyobb mint a vég dátum")
             exit(1)
     else:
