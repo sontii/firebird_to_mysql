@@ -1,5 +1,5 @@
 from errormail import *
-import datetime
+from datetime import datetime
 import logging
 import fdb
 from dotenv import load_dotenv
@@ -37,7 +37,7 @@ def queryFb(querySelect, boltok, fetchType):
         return (result)
 
     except Exception as err:
-        logging.error(" " + datetime.datetime.dstnow().strftime('%Y.%m.%d %H:%M:%S') +
+        logging.error(" " + datetime.now().strftime('%Y.%m.%d %H:%M:%S') +
                       " Error while connecting to Firebird-SQL " + f"{err}")
         errorMail(err)
         exit(1)

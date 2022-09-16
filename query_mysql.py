@@ -1,5 +1,5 @@
 from errormail import *
-import datetime
+from datetime import datetime
 import logging
 import mysql.connector
 from dotenv import load_dotenv
