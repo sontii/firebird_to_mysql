@@ -49,17 +49,17 @@ def main():
         startDate = yesterday.strftime("%Y.%m.%d")
         endDate = startDate
 
-    # query variables
-    getLastIdFb = ("SELECT FIRST 1 ID FROM CIK ORDER BY ID DESC")
-    getLastIdMysql = ("SELECT max(id) FROM cikk")
-
     # QUERYS:
     # get last id for aru (query script, boltok, fetchType)
-    lastIdFb = int(queryFb(getLastIdFb, boltok, "one"))
-    lastIdMysql = int(queryMysql(getLastIdMysql, boltok, "one"))
+    lastIdFb = int(
+        queryFb("SELECT FIRST 1 ID FROM CIK ORDER BY ID DESC", boltok, "one"))
+
+    lastIdMysql = int(queryMysql("SELECT max(id) FROM cikk", boltok, "one"))
 
     if lastIdFb != lastIdMysql:
-        print('1')
+        ressult = queryFb("SELECT CIK.ID, CIK.NEV, MNY.KOD, AFA.NEV FROM CIK JOIN CIKADT ON CIK_ID=CIK.ID JOIN BSR ON CIKADT.BSR_ID=BSR.ID JOIN AFA ON BSR.AFA_ID=AFA.ID JOIN CIKMNY ON CIKMNY.CIK_ID=CIK.ID JOIN MNY ON MNY.ID=CIKMNY.MNY_ID WHERE CIK.ID BETWEEN 3452735 AND 3452741", boltok, "all")
+        for row in ressult:
+            print(row[0])
         # get range of aru
         #getAru(lastIdFb, lastIdMysql)
 
