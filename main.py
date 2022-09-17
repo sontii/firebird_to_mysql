@@ -1,8 +1,8 @@
 import sys
 import datetime
 from datetime import date, datetime, timedelta
+import holidays
 import logging
-from webbrowser import get
 from dotenv import load_dotenv
 
 from query_fb import *
@@ -23,14 +23,23 @@ for bolt in envBoltok.split(","):
 
 # check argv date is valid
 
-
+### clear csv file after insert
 def clearCsv(fileToClear):
     # opening the file with w+ mode truncates the file
     f = open(fileToClear, "w+")
     f.close()
 
+### check if date is sunday or holiday
+def dateWeekHoliday(yesterday):
+    hu_holidays = holidays.HU()
+    if yesterday in hu_holidays:
+        return True
+    if date.weekday(yesterday) == 6:
+        return True
+    return False
 
-def validate(date_text):
+### validate date format befor using it
+def validateDate(date_text):
     try:
         datetime.datetime.strptime(date_text, '%Y.%m.%d')
     except ValueError:
@@ -47,8 +56,8 @@ def main():
     if len(sys.argv) == 3:
         startDate = sys.argv[1]
         endDate = sys.argv[2]
-        validate(startDate)
-        validate(endDate)
+        validateDate(startDate)
+        validateDate(endDate)
         if startDate > endDate:
             logging.error(" " + datetime.now().strftime('%Y.%m.%d %H:%M:%S') +
                           " A kezdő dátum nem lehet nagyobb mint a vég dátum")
@@ -93,6 +102,9 @@ def main():
                     """INSERT INTO cikk (arukod, rovid_nev, me, Afa)""")
 
         clearCsv("aru.csv")
+
+    if dateWeekHoliday(yesterday) == True:
+        pass
 
     # TODO
 
