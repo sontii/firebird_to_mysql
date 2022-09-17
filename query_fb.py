@@ -16,8 +16,7 @@ logging.basicConfig(filename="log/logfile.log",
                     encoding='utf-8', level=logging.INFO)
 
 
-def queryFb(querySelect, boltok, fetchType):
-
+def queryFb(boltok, fetchType, query):
     try:
         connection = fdb.connect(
             host=fbHost, database=fbData,
@@ -25,7 +24,7 @@ def queryFb(querySelect, boltok, fetchType):
         )
         cursor = connection.cursor()
 
-        cursor.execute(querySelect)
+        cursor.execute(query)
 
         if fetchType == "one":
             for row in cursor.fetchone():

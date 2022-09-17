@@ -2,10 +2,13 @@ import sys
 import datetime
 from datetime import date, datetime, timedelta
 import logging
+from webbrowser import get
 from dotenv import load_dotenv
 
 from query_fb import *
 from query_mysql import *
+from insert_mysql import *
+from writetocsv import *
 
 load_dotenv()
 
@@ -19,6 +22,12 @@ for bolt in envBoltok.split(","):
     boltok.append(bolt)
 
 # check argv date is valid
+
+
+def clearCsv(fileToClear):
+    # opening the file with w+ mode truncates the file
+    f = open(fileToClear, "w+")
+    f.close()
 
 
 def validate(date_text):
@@ -52,20 +61,41 @@ def main():
     # QUERYS:
     # get last id for aru (query script, boltok, fetchType)
     lastIdFb = int(
-        queryFb("SELECT FIRST 1 ID FROM CIK ORDER BY ID DESC", boltok, "one"))
+        queryFb(boltok, "one",
+                """ 
+                SELECT
+                  FIRST 1 ID FROM CIK
+                ORDER BY ID DESC """))
 
-    lastIdMysql = int(queryMysql("SELECT max(id) FROM cikk", boltok, "one"))
+    lastIdMysql = int(queryMysql(boltok, "one",
+                                 """
+                                 SELECT
+                                 max(arukod) 
+                                 FROM cikk"""))
 
     if lastIdFb != lastIdMysql:
-        ressult = queryFb("SELECT CIK.ID, CIK.NEV, MNY.KOD, AFA.NEV FROM CIK JOIN CIKADT ON CIK_ID=CIK.ID JOIN BSR ON CIKADT.BSR_ID=BSR.ID JOIN AFA ON BSR.AFA_ID=AFA.ID JOIN CIKMNY ON CIKMNY.CIK_ID=CIK.ID JOIN MNY ON MNY.ID=CIKMNY.MNY_ID WHERE CIK.ID BETWEEN 3452735 AND 3452741", boltok, "all")
-        for row in ressult:
-            print(row[0])
-        # get range of aru
-        #getAru(lastIdFb, lastIdMysql)
+        getQuery = """ SELECT
+                        CIK.ID, CIK.NEV, MNY.KOD, AFA.NEV
+                        FROM CIK
+                        JOIN CIKADT ON CIK_ID=CIK.ID
+                        JOIN BSR ON CIKADT.BSR_ID=BSR.ID
+                        JOIN AFA ON BSR.AFA_ID=AFA.ID
+                        JOIN CIKMNY ON CIKMNY.CIK_ID=CIK.ID
+                        JOIN MNY ON MNY.ID=CIKMNY.MNY_ID
+                        WHERE CIK.ID BETWEEN %s AND %s AND KPC_ID = 1 """ % (lastIdMysql, lastIdFb)
+
+        aruToCsv = queryFb(boltok, "all", getQuery)
+        writeToCsv(aruToCsv, "aru.csv")
+
+        # Insert
+        print("insert")
+        insertMysql("aru.csv", boltok, "all",
+                    """INSERT INTO cikk (arukod, rovid_nev, me, Afa)""")
+
+        clearCsv("aru.csv")
 
     # TODO
-    ### getLastIDs - done
-    ### getAru (mysqlLastItem, fbLastItem)
+
     # aruToMysql(mysqlHost, mysqlData, mysqlUser, mysqlPass) csv -> to  mysql
     ##getForgalom (startDate, endDate)
     ### forgalomToMysql ()

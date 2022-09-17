@@ -2,6 +2,7 @@ from errormail import *
 from datetime import datetime
 import logging
 import mysql.connector
+import csv
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -16,8 +17,7 @@ mysqlUser = os.getenv("MYSQLUSER")
 mysqlPass = os.getenv("MYSQLPASS")
 
 
-def queryMysql(boltok, fetchType, query):
-
+def insertMysql(readFile, boltok, fetchType, query):
     try:
         connection = mysql.connector.connect(host=mysqlHost,
                                              database=mysqlData,
@@ -26,20 +26,29 @@ def queryMysql(boltok, fetchType, query):
                                              auth_plugin='mysql_native_password')
 
         cursor = connection.cursor()
-        cursor.execute(query)
 
-        if fetchType == "one":
-            for row in cursor.fetchone():
-                if row is None:
-                    row = "0"
-                result = row
-        else:
-            result = cursor.fetchall()
+        with open(readFile, encoding='utf-8') as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=',')
+            next(csv_reader)
+            insert_sql = query + "VALUES( %s, %s, %s, %s)"
 
+            rows = []
+            row_count = 0
+            for row in csv_reader:
+                row_count += 1
+                rows.append(row)
+                if row_count == 1000:
+                    cursor.executemany(insert_sql, rows)
+                    rows = []
+                    row_count = 0
+            if rows:
+                cursor.executemany(insert_sql, rows)
+
+        connection.commit()
         cursor.close()
         connection.close()
 
-        return (result)
+        return ()
 
     except Exception as err:
         logging.error(" " + datetime.now().strftime('%Y.%m.%d %H:%M:%S') +
