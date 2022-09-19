@@ -36,10 +36,10 @@ def insertMysql(valuesNr, readFile, boltok, fetchType, query):
 
             ## cannot pass string %s params, build up here VALUES part
             for value in range(0, valuesNr):
-                insert_sql = insert_sql + " %s,"
+                query = query + " %s,"
             ## remove tail ","
-            insert_sql = insert_sql[:-1]
-            insert_sql = insert_sql + ")"
+            query = query[:-1]
+            query = query + ")"
 
             ## read 1000 row then execute many, and repeat
             rows = []
@@ -48,11 +48,11 @@ def insertMysql(valuesNr, readFile, boltok, fetchType, query):
                 row_count += 1
                 rows.append(row)
                 if row_count == 1000:
-                    cursor.executemany(insert_sql, rows)
+                    cursor.executemany(query, rows)
                     rows = []
                     row_count = 0
             if rows:
-                cursor.executemany(insert_sql, rows)
+                cursor.executemany(query, rows)
 
         ## after insert need commit
         connection.commit()
@@ -66,7 +66,6 @@ def insertMysql(valuesNr, readFile, boltok, fetchType, query):
             " "
             + datetime.now().strftime("%Y.%m.%d %H:%M:%S")
             + " Error while connecting to MySQL "
-            + f"{err}"
-        )
+            + f"{err}")
         errorMail(err)
         exit(1)
