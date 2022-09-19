@@ -12,8 +12,7 @@ from writetocsv import *
 
 load_dotenv()
 
-logging.basicConfig(filename="log/logfile.log",
-                    encoding='utf-8', level=logging.INFO)
+logging.basicConfig(filename="log/logfile.log", encoding="utf-8", level=logging.INFO)
 
 envBoltok = os.getenv("BOLTOK")
 
@@ -29,6 +28,7 @@ def clearCsv(fileToClear):
     f = open(fileToClear, "w+")
     f.close()
 
+
 ### check if date is sunday or holiday
 def dateWeekHoliday(yesterday):
     hu_holidays = holidays.HU()
@@ -38,13 +38,17 @@ def dateWeekHoliday(yesterday):
         return True
     return False
 
+
 ### validate date format befor using it
 def validateDate(date_text):
     try:
-        datetime.datetime.strptime(date_text, '%Y.%m.%d')
+        datetime.datetime.strptime(date_text, "%Y.%m.%d")
     except ValueError:
-        logging.error(" " + datetime.now().strftime(
-            '%Y.%m.%d %H:%M:%S') + " dátum formátum: YYYY.MM.DD")
+        logging.error(
+            " "
+            + datetime.now().strftime("%Y.%m.%d %H:%M:%S")
+            + " dátum formátum: YYYY.MM.DD"
+        )
         exit(1)
 
 
@@ -59,8 +63,11 @@ def main():
         validateDate(startDate)
         validateDate(endDate)
         if startDate > endDate:
-            logging.error(" " + datetime.now().strftime('%Y.%m.%d %H:%M:%S') +
-                          " A kezdő dátum nem lehet nagyobb mint a vég dátum")
+            logging.error(
+                " "
+                + datetime.now().strftime("%Y.%m.%d %H:%M:%S")
+                + " A kezdő dátum nem lehet nagyobb mint a vég dátum"
+            )
             exit(1)
     else:
 
@@ -70,17 +77,26 @@ def main():
     # QUERYS:
     # get last id for aru (query script, boltok, fetchType)
     lastIdFb = int(
-        queryFb(boltok, "one",
-                """ 
+        queryFb(
+            boltok,
+            "one",
+            """ 
                 SELECT
                   FIRST 1 ID FROM CIK
-                ORDER BY ID DESC """))
+                ORDER BY ID DESC """,
+        )
+    )
 
-    lastIdMysql = int(queryMysql(boltok, "one",
-                                 """
+    lastIdMysql = int(
+        queryMysql(
+            boltok,
+            "one",
+            """
                                  SELECT
                                  max(arukod) 
-                                 FROM cikk"""))
+                                 FROM cikk""",
+        )
+    )
 
     if lastIdFb != lastIdMysql:
         getQuery = """ SELECT
@@ -91,15 +107,23 @@ def main():
                         JOIN AFA ON BSR.AFA_ID=AFA.ID
                         JOIN CIKMNY ON CIKMNY.CIK_ID=CIK.ID
                         JOIN MNY ON MNY.ID=CIKMNY.MNY_ID
-                        WHERE CIK.ID BETWEEN %s AND %s AND KPC_ID = 1 """ % (lastIdMysql, lastIdFb)
+                        WHERE CIK.ID BETWEEN %s AND %s AND KPC_ID = 1 """ % (
+            lastIdMysql,
+            lastIdFb,
+        )
 
         aruToCsv = queryFb(boltok, "all", getQuery)
         writeToCsv(aruToCsv, "aru.csv")
 
         # Insert
-        print("insert")
-        insertMysql("aru.csv", boltok, "all",
-                    """INSERT INTO cikk (arukod, rovid_nev, me, Afa)""")
+        ## passing parameters number, csv file path, boltok, fetch all or one, query string
+        insertMysql(
+            4,
+            "aru.csv",
+            boltok,
+            "all",
+            """INSERT INTO cikk (arukod, rovid_nev, me, Afa) "VALUES (""",
+        )
 
         clearCsv("aru.csv")
 
