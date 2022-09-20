@@ -14,11 +14,11 @@ load_dotenv()
 
 logging.basicConfig(filename="log/logfile.log", encoding="utf-8", level=logging.INFO)
 
-envBoltok = os.getenv("BOLTOK")
-
-boltok = []
-for bolt in envBoltok.split(","):
-    boltok.append(bolt)
+## create dict from list
+envBoltok = os.getenv('BOLTOK').split(",")
+boltok = {}
+for bolt in envBoltok:
+    boltok[bolt] = None
 
 # check argv date is valid
 
