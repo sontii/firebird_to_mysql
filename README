@@ -9,6 +9,19 @@
 This application stand for copy daily data to BI sql system.
 Written in python.
 
+first phase getting both sql databse last data, and compare them.
+If there are rows that not listed in BI database then get rows
+and write down a temporary csv.
+If we have csv, than copy from csv to BI datbase.
+If copy finished and succesfull, program clear the csv.
+
+data tables to copy:
+- aru
+- ean
+- taltos
+- tiltas
+- forgalom
+
 ---
 
 ### **How to use:**
@@ -52,7 +65,7 @@ python-dotenv==0.21.0
 
 ---
 
-### **Database:**
+### **Database**
 
 - at .env file
 
