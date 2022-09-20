@@ -62,10 +62,7 @@ def insertMysql(valuesNr, readFile, boltok, fetchType, query):
         return ()
 
     except Exception as err:
-        logging.error(
-            " "
-            + datetime.now().strftime("%Y.%m.%d %H:%M:%S")
-            + " Error while connecting to MySQL "
-            + f"{err}")
+        logging.error(" " + datetime.now().strftime("%Y.%m.%d %H:%M:%S") 
+                        + " Error while connecting to MySQL" + f" {query}" + f" {err}")
         errorMail(err)
         exit(1)

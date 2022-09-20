@@ -28,24 +28,27 @@ Use correct date format, or it will raise error.
 
 For install reuieqd packeges: pip3 install -r requirements.txt
 
-- fdb==2.0.2
-- mysql_connector_repackaged==0.3.1
-- python-dotenv==0.20.0
+fdb==2.0.2
+mysql-connector-python-8.0.30
+holidays==0.16
+python-dotenv==0.21.0
 
 ---
 
 ### **Files and folders:**
 
 - main.py
-- fb_conn.py
-- mysql_conn.py
 - errormail.py
-- Readme.md - you are here
+- insert_mysql.py
+- query_fb.py
+- query_mysql.py
+- writeto csv.py
+- README - you are here
 - reqirement.txt
-- log
 - .env
 - .gitignore
-- temp.csv
+- csv
+- log
 
 ---
 

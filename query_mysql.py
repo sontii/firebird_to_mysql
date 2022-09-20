@@ -43,6 +43,6 @@ def queryMysql(boltok, fetchType, query):
 
     except Exception as err:
         logging.error(" " + datetime.now().strftime('%Y.%m.%d %H:%M:%S') +
-                      " Error while connecting to MySQL " + f"{err}")
+                      " Error while connecting to MySQL" + f" {query}" + f" {err}")
         errorMail(err)
         exit(1)
