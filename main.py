@@ -20,6 +20,11 @@ boltok = {}
 for bolt in envBoltok:
     boltok[bolt] = None
 
+## copy boltok dict
+sundayOpen = dict(boltok)
+for bolt in sundayOpen:
+    sundayOpen[bolt] = True
+
 # check argv date is valid
 
 ### clear csv file after insert
@@ -28,12 +33,16 @@ def clearCsv(fileToClear):
     f = open(fileToClear, "w+")
     f.close()
 
+### check if date is sunday
+def dateSunday(yesterday):
+    if date.weekday(yesterday) == 6:
+        return True
+    return False
+
 ### check if date is sunday or holiday
-def dateWeekHoliday(yesterday):
+def dateHoliday(yesterday):
     hu_holidays = holidays.HU()
     if yesterday in hu_holidays:
-        return True
-    if date.weekday(yesterday) == 6:
         return True
     return False
 
@@ -49,8 +58,10 @@ def validateDate(date_text):
 def main():
 
     yesterday = date.today() - timedelta(days=1)
+    holiday = dateHoliday(yesterday)
+    sunday = dateSunday(yesterday)
 
-    # if we have argv
+    # if argv set dates 
     if len(sys.argv) == 3:
         startDate = sys.argv[1]
         endDate = sys.argv[2]
@@ -63,6 +74,7 @@ def main():
         startDate = yesterday.strftime("%Y.%m.%d")
         endDate = startDate
 
+
     # QUERYS:
     ## get last id for aru (boltok, fetchType, query script)
     lastIdFb = int(queryFb( boltok, "one", """ SELECT FIRST 1 ID FROM CIK ORDER BY ID DESC """))
@@ -72,6 +84,15 @@ def main():
 
     ## last id for tiltott cikk
     lastTiltasFb = int(queryFb( boltok, "one", """ SELECT FIRST 1 ID FROM CIKUZF ORDER BY ID DESC """))
+
+    ## last forgalom date
+    lastForgalom = queryFb( boltok, "all", """ SELECT EGYSEG FROM BLOKK_TET WHERE DATUM = '%s' """) % (yesterday)
+    for row in lastForgalom:
+        if row in boltok:
+            boltok[row] = yesterday
+
+    if sunday == True:
+        boltok
 
     ## last stored aru id in mysql for aru
     lastIdMysql = int(queryMysql( boltok, "one", """ SELECT max(arukod) FROM cikk"""))
