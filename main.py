@@ -20,10 +20,14 @@ boltok = {}
 for bolt in envBoltok:
     boltok[bolt] = None
 
+vasrnapZarva = os.getenv('VASARNAPZARVA').split(",")
+
 ## copy boltok dict
 sundayOpen = dict(boltok)
 for bolt in sundayOpen:
     sundayOpen[bolt] = True
+    if bolt in vasrnapZarva:
+        sundayOpen[bolt] = False
 
 # check argv date is valid
 
@@ -52,15 +56,17 @@ def validateDate(date_text):
     try:
         datetime.datetime.strptime(date_text, "%Y.%m.%d")
     except ValueError:
-        logging.error(" " + datetime.now().strftime("%Y.%m.%d %H:%M:%S") + " dátum formátum: YYYY.MM.DD")
-        exit(1)
+        logging.error(" " + datetime.now().strftime("%Y.%m.%d %H:%M:%S")
+                          + " not valid date format yyyy.mm.dd")
+        exit('not valid date format yyyy.mm.dd')
 
 def main():
 
     yesterday = date.today() - timedelta(days=1)
+    fiveDayBefore = date.today() - timedelta(days=5)
     holiday = dateHoliday(yesterday)
     sunday = dateSunday(yesterday)
-
+   
     # if argv set dates 
     if len(sys.argv) == 3:
         startDate = sys.argv[1]
@@ -68,8 +74,9 @@ def main():
         validateDate(startDate)
         validateDate(endDate)
         if startDate > endDate:
-            logging.error(" " + datetime.now().strftime("%Y.%m.%d %H:%M:%S") + " A kezdő dátum nem lehet nagyobb mint a vég dátum")
-            exit(1)
+            logging.error(" " + datetime.now().strftime("%Y.%m.%d %H:%M:%S") 
+                              + " start date cannot be greater than end date")
+            exit('start date cannot be greater than end date')
     else:
         startDate = yesterday.strftime("%Y.%m.%d")
         endDate = startDate
@@ -85,15 +92,20 @@ def main():
     ## last id for tiltott cikk
     lastTiltasFb = int(queryFb( boltok, "one", """ SELECT FIRST 1 ID FROM CIKUZF ORDER BY ID DESC """))
 
+    ## last id in forgalom query by date
+    lastForgalom = queryFb( boltok, "one", """ SELECT MAX(TRX_ID) 
+                                               FROM BLOKK_TET
+                                               WHERE DATUM BETWEEN '%s' AND '%s' """ % (fiveDayBefore.strftime("%Y.%m.%d"), date.today().strftime("%Y.%m.%d")))
+
+    print(lastForgalom)
+    exit('end')
+
     ## last forgalom date
-    lastForgalom = queryFb( boltok, "all", """ SELECT EGYSEG FROM BLOKK_TET WHERE DATUM = '%s' """) % (yesterday)
-    for row in lastForgalom:
-        if row in boltok:
-            boltok[row] = yesterday
-
-    if sunday == True:
-        boltok
-
+    lastForgalom = queryFb( boltok, "all", """ SELECT EGYSEG
+                                               FROM BLOKK_TET
+                                               WHERE DATUM = '%s' 
+                                               GROUP BY EGYSEG """ % (yesterday.strftime("%Y.%m.%d")))
+    
     ## last stored aru id in mysql for aru
     lastIdMysql = int(queryMysql( boltok, "one", """ SELECT max(arukod) FROM cikk"""))
 
@@ -184,9 +196,6 @@ def main():
 
             clearCsv("csv/tiltas.csv")
 
-
-    if dateWeekHoliday(yesterday) == True:
-        pass
 
     # TODO
 
