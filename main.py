@@ -92,19 +92,10 @@ def main():
     ## last id for tiltott cikk
     lastTiltasFb = int(queryFb( boltok, "one", """ SELECT FIRST 1 ID FROM CIKUZF ORDER BY ID DESC """))
 
-    ## last id in forgalom query by date
-    lastForgalom = queryFb( boltok, "one", """ SELECT MAX(TRX_ID) 
+    ## last id in forgalom query by date!!
+    lastForgalomFb = int(queryFb( boltok, "one", """ SELECT MAX(TRX_ID)
                                                FROM BLOKK_TET
-                                               WHERE DATUM BETWEEN '%s' AND '%s' """ % (fiveDayBefore.strftime("%Y.%m.%d"), date.today().strftime("%Y.%m.%d")))
-
-    print(lastForgalom)
-    exit('end')
-
-    ## last forgalom date
-    lastForgalom = queryFb( boltok, "all", """ SELECT EGYSEG
-                                               FROM BLOKK_TET
-                                               WHERE DATUM = '%s' 
-                                               GROUP BY EGYSEG """ % (yesterday.strftime("%Y.%m.%d")))
+                                               WHERE DATUM BETWEEN '%s' AND '%s' """ % (fiveDayBefore.strftime("%Y.%m.%d"), date.today().strftime("%Y.%m.%d"))))
     
     ## last stored aru id in mysql for aru
     lastIdMysql = int(queryMysql( boltok, "one", """ SELECT max(arukod) FROM cikk"""))
@@ -114,7 +105,10 @@ def main():
    
     ## last stored id in mysql for tiltott cikk
     lastTiltasMysql = int(queryMysql( boltok, "one", """ SELECT max(tiltas_id) FROM tiltas"""))
-    
+
+    ## last stored id in mysql for forgalom
+    lastForgalomMysql = int(queryMysql( boltok, "one", """ SELECT max(id) FROM blokk"""))
+
     # INSERTS:
     ## get aru from firebird and pass to mysql
     if lastIdFb != lastIdMysql:
@@ -178,30 +172,43 @@ def main():
             clearCsv("csv/taltos.csv")
     
     if lastTiltasFb != lastTiltasMysql:
-
         ### tiltott cikkek
         getQuery = """ SELECT CIKUZF.ID, CIKUZF.CIK_ID, CIKUZF.UZF_ID, UZF.NEV
                        FROM CIKUZF
                        JOIN UZF ON CIKUZF.UZF_ID = UZF.ID
                        WHERE CIKUZF.ID BETWEEN %s AND %s """ % ( lastTiltasMysql, lastTiltasFb)
         ##get result from sql
-        tiltasToCsv = queryFb(boltok, "all", getQuery)
-        if tiltasToCsv:
+        forgalomToCsv = queryFb(boltok, "all", getQuery)
+        if forgalomToCsv:
         
             ## write result to csv
-            writeToCsv(tiltasToCsv, "csv/tiltas.csv")
+            writeToCsv(forgalomToCsv, "csv/tiltas.csv")
 
             ## passing parameters number, csv file path, boltok, fetch all or one, query string
             insertMysql( 4, "csv/tiltas.csv", boltok, "all", """INSERT INTO tiltas (tiltas_id, arukod_id, tiltas_nev_id, tiltas_nev) VALUES (""" )
 
             clearCsv("csv/tiltas.csv")
-
+    exit()
 
     # TODO
+    if lastForgalomFb != lastForgalomMysql:
+        ### blokk tetel forgalom
+        getQuery = """ SELECT TRX_ID, EGYSEG, DATUM, ARUKOD, MENNY <<---- TODO
+                       FROM BLOKK_TET
+                       WHERE DATUM BETWEEN '%s' AND '%s' AND TRX_ID BETWEEN %s AND %s """ % ( fiveDayBefore.strftime("%Y.%m.%d"), date.today().strftime("%Y.%m.%d"), lastForgalomMysql, lastForgalomFb)
+        ##get result from sql
+        forgalomToCsv = queryFb(boltok, "all", getQuery)
+        if forgalomToCsv:
+        
+            ## write result to csv
+            writeToCsv(forgalomToCsv, "csv/forgalom.csv")
 
-    ## getForgalom (startDate, endDate)
-    ### forgalomToMysql ()
+            ## passing parameters number, csv file path, boltok, fetch all or one, query string
+            insertMysql( 14, "csv/forgalom.csv", boltok, "all", """INSERT INTO blokk
+                                     (id, boltok_nr, datum, arukod_id, mennyiseg, ME, afa_kod. afa_szazalek,
+                                      nyilv_ar, nyilv_ertek, bfogy_ar, netto_fogy_ert, netto_teny_ert, brutto_teny_ertek) VALUES (""" )
 
+            clearCsv("csv/forgalom.csv")
 
 if __name__ == "__main__":
     main()

@@ -30,4 +30,4 @@ def errorMail(err):
       smtpObj = smtplib.SMTP(envSMTP)
       smtpObj.sendmail(sender, recipients, message.as_string())
    except smtplib.SMTPException as e:
-      logging.info(" " + datetime.now().strftime('%Y.%m.%d %H:%M:%S') + " Nem sikerült elküldeni a levelet hiba: " + f"{e}")
+      logging.info(" " + datetime.now().strftime('%Y.%m.%d %H:%M:%S') + " cannot send email: " + f"{e}")
