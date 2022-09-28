@@ -188,12 +188,13 @@ def main():
             insertMysql( 4, "csv/tiltas.csv", boltok, "all", """INSERT INTO tiltas (tiltas_id, arukod_id, tiltas_nev_id, tiltas_nev) VALUES (""" )
 
             clearCsv("csv/tiltas.csv")
+ 
     exit()
-
     # TODO
     if lastForgalomFb != lastForgalomMysql:
         ### blokk tetel forgalom
-        getQuery = """ SELECT TRX_ID, EGYSEG, DATUM, ARUKOD, MENNY <<---- TODO
+        getQuery = """ SELECT TRX_ID, EGYSEG, PT_GEP, DATUM, SORSZAM, ARUKOD, MENNY, ME, AFA_KOD, AFA_SZAZ, NYILV_AR,
+                            NYILV_ERT, BFOGY_AR, BFOGY_ERT, NFOGY_ERT, BTENY_AR, BTENY_ERT, NTENY_ERT, NENG_ERT, BENG_ERT, TVR_AZON
                        FROM BLOKK_TET
                        WHERE DATUM BETWEEN '%s' AND '%s' AND TRX_ID BETWEEN %s AND %s """ % ( fiveDayBefore.strftime("%Y.%m.%d"), date.today().strftime("%Y.%m.%d"), lastForgalomMysql, lastForgalomFb)
         ##get result from sql
