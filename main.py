@@ -84,7 +84,7 @@ def main():
 
     # QUERYS:
     ## get last id for aru (boltok, fetchType, query script)
-    lastIdFb = int(queryFb( boltok, "one", """ SELECT FIRST 1 ID FROM CIK ORDER BY ID DESC """))
+    lastAruFb = int(queryFb( boltok, "one", """ SELECT FIRST 1 ID FROM CIK ORDER BY ID DESC """))
 
     ## last CIKMNY id for ean
     lastCIKMNYFb = int(queryFb( boltok, "one", """ SELECT FIRST 1 ID FROM CIKMNY ORDER BY ID DESC """))
@@ -92,13 +92,18 @@ def main():
     ## last id for tiltott cikk
     lastTiltasFb = int(queryFb( boltok, "one", """ SELECT FIRST 1 ID FROM CIKUZF ORDER BY ID DESC """))
 
-    ## last id in forgalom query by date!!
-    lastForgalomFb = int(queryFb( boltok, "one", """ SELECT MAX(TRX_ID)
+    ## last MAX id in forgalom query by date!!
+    lastForgalomMaxFb = int(queryFb( boltok, "one", """ SELECT MAX(TRX_ID)
+                                               FROM BLOKK_TET
+                                               WHERE DATUM BETWEEN '%s' AND '%s' """ % (fiveDayBefore.strftime("%Y.%m.%d"), date.today().strftime("%Y.%m.%d"))))
+
+    ## last MIN id in forgalom query by date!!
+    lastForgalomMinFb = int(queryFb( boltok, "one", """ SELECT MIN(TRX_ID)
                                                FROM BLOKK_TET
                                                WHERE DATUM BETWEEN '%s' AND '%s' """ % (fiveDayBefore.strftime("%Y.%m.%d"), date.today().strftime("%Y.%m.%d"))))
     
     ## last stored aru id in mysql for aru
-    lastIdMysql = int(queryMysql( boltok, "one", """ SELECT max(arukod) FROM cikk"""))
+    lastAruMysql = int(queryMysql( boltok, "one", """ SELECT max(arukod) FROM cikk"""))
 
     ## last stored CIKMNY id in mysql for ean
     lastCIKMNYMysql = int(queryMysql( boltok, "one", """ SELECT max(cikmny_id) FROM ean"""))
@@ -111,14 +116,14 @@ def main():
 
     # INSERTS:
     ## get aru from firebird and pass to mysql
-    if lastIdFb != lastIdMysql:
+    if lastAruFb != lastAruMysql:
         getQuery = """ SELECT CIK.ID, CIK.NEV, MNY.KOD, BSR.AFA_ID
                         FROM CIK
                         JOIN CIKADT ON CIK_ID=CIK.ID
                         JOIN BSR ON CIKADT.BSR_ID=BSR.ID
                         JOIN CIKMNY ON CIKMNY.CIK_ID=CIK.ID
                         JOIN MNY ON MNY.ID=CIKMNY.MNY_ID
-                        WHERE CIK.ID BETWEEN %s AND %s AND KPC_ID = 1 """ % ( lastIdMysql, lastIdFb)
+                        WHERE CIK.ID BETWEEN %s AND %s AND KPC_ID = 1 """ % ( lastAruMysql + 1, lastAruFb)
 
         aruToCsv = queryFb(boltok, "all", getQuery)
         writeToCsv(aruToCsv, "csv/aru.csv")
@@ -138,7 +143,7 @@ def main():
                        JOIN CIKMNY ON CIKMNY.CIK_ID = CIK."ID"  
                        JOIN CIKKOD ON CIKKOD.CIKMNY_ID = CIKMNY.ID
                        LEFT JOIN CIKKODKPC ON CIKKOD.KPC_ID  = CIKKODKPC.ID
-                       WHERE CIKMNY.ID BETWEEN %s AND %s AND CIKKOD.KPC_ID = 3""" % ( lastCIKMNYMysql, lastCIKMNYFb)
+                       WHERE CIKMNY.ID BETWEEN %s AND %s AND CIKKOD.KPC_ID = 3""" % ( lastCIKMNYMysql + 1, lastCIKMNYFb)
 
         ##get result from sql
         eanToCsv = queryFb(boltok, "all", getQuery)
@@ -158,7 +163,7 @@ def main():
                        JOIN CIKMNY ON CIKMNY.CIK_ID = CIK."ID"
                        JOIN CIKKOD ON CIKKOD.CIKMNY_ID = CIKMNY.ID
                        LEFT JOIN CIKKODKPC ON CIKKOD.KPC_ID = CIKKODKPC.ID
-                       WHERE CIKMNY.ID BETWEEN %s AND %s AND CIKKOD.KPC_ID = 10""" % ( lastCIKMNYMysql, lastCIKMNYFb)
+                       WHERE CIKMNY.ID BETWEEN %s AND %s AND CIKKOD.KPC_ID = 10""" % ( lastCIKMNYMysql + 1, lastCIKMNYFb)
 
         ##get result from sql
         taltosToCsv = queryFb(boltok, "all", getQuery)
@@ -176,7 +181,7 @@ def main():
         getQuery = """ SELECT CIKUZF.ID, CIKUZF.CIK_ID, CIKUZF.UZF_ID, UZF.NEV
                        FROM CIKUZF
                        JOIN UZF ON CIKUZF.UZF_ID = UZF.ID
-                       WHERE CIKUZF.ID BETWEEN %s AND %s """ % ( lastTiltasMysql, lastTiltasFb)
+                       WHERE CIKUZF.ID BETWEEN %s AND %s """ % ( lastTiltasMysql + 1, lastTiltasFb)
         ##get result from sql
         forgalomToCsv = queryFb(boltok, "all", getQuery)
         if forgalomToCsv:
@@ -188,7 +193,10 @@ def main():
             insertMysql( 4, "csv/tiltas.csv", boltok, "all", """INSERT INTO tiltas (tiltas_id, arukod_id, tiltas_nev_id, tiltas_nev) VALUES (""" )
 
             clearCsv("csv/tiltas.csv")
- 
+    
+    if lastForgalomMinFb > lastForgalomMysql:
+        print(lastForgalomMinFb, ' ', lastForgalomMaxFb, ' ', lastCIKMNYMysql)
+
     exit()
     # TODO
     if lastForgalomFb != lastForgalomMysql:
