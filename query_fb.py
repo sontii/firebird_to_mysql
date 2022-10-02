@@ -27,8 +27,7 @@ def queryFb(boltok, fetchType, query):
         cursor.execute(query)
 
         if fetchType == "one":
-            for row in cursor.fetchone():
-                result = row
+            result = cursor.fetchone()
         else:
             result = cursor.fetchall()
 

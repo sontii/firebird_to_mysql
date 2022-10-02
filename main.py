@@ -61,6 +61,8 @@ def validateDate(date_text):
         exit('not valid date format yyyy.mm.dd')
 
 def main():
+    ## log duration
+    start_time = datetime.now()
 
     yesterday = date.today() - timedelta(days=1)
     fiveDayBefore = date.today() - timedelta(days=5)
@@ -84,24 +86,22 @@ def main():
 
     # QUERYS:
     ## get last id for aru (boltok, fetchType, query script)
-    lastAruFb = int(queryFb( boltok, "one", """ SELECT FIRST 1 ID FROM CIK ORDER BY ID DESC """))
+    lastAruFb = int(queryFb( boltok, "one", """ SELECT FIRST 1 ID FROM CIK ORDER BY ID DESC """)[0])
 
     ## last CIKMNY id for ean
-    lastCIKMNYFb = int(queryFb( boltok, "one", """ SELECT FIRST 1 ID FROM CIKMNY ORDER BY ID DESC """))
+    lastCIKMNYFb = int(queryFb( boltok, "one", """ SELECT FIRST 1 ID FROM CIKMNY ORDER BY ID DESC """)[0])
 
     ## last id for tiltott cikk
-    lastTiltasFb = int(queryFb( boltok, "one", """ SELECT FIRST 1 ID FROM CIKUZF ORDER BY ID DESC """))
+    lastTiltasFb = int(queryFb( boltok, "one", """ SELECT FIRST 1 ID FROM CIKUZF ORDER BY ID DESC """)[0])
 
-    ## last MAX id in forgalom query by date!!
-    lastForgalomMaxFb = int(queryFb( boltok, "one", """ SELECT MAX(TRX_ID)
+    ## last MIN-MAX id in forgalom query by date!!
+    lastForgalomFb = queryFb( boltok, "one", """ SELECT MIN(TRX_ID), MAX(TRX_ID)
                                                FROM BLOKK_TET
-                                               WHERE DATUM BETWEEN '%s' AND '%s' """ % (fiveDayBefore.strftime("%Y.%m.%d"), date.today().strftime("%Y.%m.%d"))))
+                                               WHERE DATUM BETWEEN '2022.02.01' AND '2022.02.28' """)
 
-    ## last MIN id in forgalom query by date!!
-    lastForgalomMinFb = int(queryFb( boltok, "one", """ SELECT MIN(TRX_ID)
-                                               FROM BLOKK_TET
-                                               WHERE DATUM BETWEEN '%s' AND '%s' """ % (fiveDayBefore.strftime("%Y.%m.%d"), date.today().strftime("%Y.%m.%d"))))
-    
+    lastForgalomMinFb = int(lastForgalomFb[0])
+    lastForgalomMaxFb = int(lastForgalomFb[1])
+
     ## last stored aru id in mysql for aru
     lastAruMysql = int(queryMysql( boltok, "one", """ SELECT max(arukod) FROM cikk"""))
 
@@ -193,13 +193,18 @@ def main():
             insertMysql( 4, "csv/tiltas.csv", boltok, "all", """INSERT INTO tiltas (tiltas_id, arukod_id, tiltas_nev_id, tiltas_nev) VALUES (""" )
 
             clearCsv("csv/tiltas.csv")
- 
+
     if lastForgalomMaxFb != lastForgalomMysql:
+        ### 
+        if lastForgalomMinFb > lastForgalomMysql:
+            lastForgalomMysql = lastForgalomMinFb
+        
         ### blokk tetel forgalom
         getQuery = """ SELECT TRX_ID, EGYSEG, PT_GEP, DATUM, SORSZAM, ARUKOD, MENNY, ME, AFA_KOD, AFA_SZAZ, NYILV_AR, NYILV_ERT,
                         BFOGY_AR, BFOGY_ERT, NFOGY_ERT, BTENY_AR, BTENY_ERT, NTENY_ERT, NENG_ERT, BENG_ERT, TVR_AZON
                        FROM BLOKK_TET
-                       WHERE DATUM BETWEEN '%s' AND '%s' AND TRX_ID BETWEEN %s AND %s """ % ( fiveDayBefore.strftime("%Y.%m.%d"), date.today().strftime("%Y.%m.%d"), lastForgalomMysql, lastForgalomFb)
+                       WHERE DATUM BETWEEN '2022.02.01' AND '2022.02.28' AND TRX_ID BETWEEN %s AND %s """ % (lastForgalomMysql, lastForgalomMaxFb)
+
         ##get result from sql
         forgalomToCsv = queryFb(boltok, "all", getQuery)
         if forgalomToCsv:
@@ -208,11 +213,15 @@ def main():
             writeToCsv(forgalomToCsv, "csv/forgalom.csv")
 
             ## passing parameters number, csv file path, boltok, fetch all or one, query string
-            insertMysql( 14, "csv/forgalom.csv", boltok, "all", """INSERT INTO blokk
-                                     (id, egyseg, pt_gep, datum, sorszam, arukod_id, menny, me, afa_kod. afa_szaz, nyilv_ar, nyilv_ertek,
+            insertMysql( 21, "csv/forgalom.csv", boltok, "all", """INSERT INTO blokk
+                                     (id, egyseg, pt_gep, datum, sorszam, arukod_id, menny, me, afa_kod, afa_szaz, nyilv_ar, nyilv_ertek,
                                      bfogy_ar, bfogy_ert, nfogy_ert, bteny_ar, bteny_ert, nteny_ert, neng_ert, beng_ert, tvr_azon) VALUES (""" )
 
             clearCsv("csv/forgalom.csv")
+    
+    end_time = datetime.now()
+    ## keep logs short. if need: logging.info(" " + datetime.now().strftime("%Y.%m.%d %H:%M:%S") + f" Duration: {end_time - start_time}")
+
 
 if __name__ == "__main__":
     main()
