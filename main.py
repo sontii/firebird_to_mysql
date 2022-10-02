@@ -189,12 +189,11 @@ def main():
 
             clearCsv("csv/tiltas.csv")
  
-    exit()
     # TODO
     if lastForgalomFb != lastForgalomMysql:
         ### blokk tetel forgalom
-        getQuery = """ SELECT TRX_ID, EGYSEG, PT_GEP, DATUM, SORSZAM, ARUKOD, MENNY, ME, AFA_KOD, AFA_SZAZ, NYILV_AR,
-                            NYILV_ERT, BFOGY_AR, BFOGY_ERT, NFOGY_ERT, BTENY_AR, BTENY_ERT, NTENY_ERT, NENG_ERT, BENG_ERT, TVR_AZON
+        getQuery = """ SELECT TRX_ID, EGYSEG, PT_GEP, DATUM, SORSZAM, ARUKOD, MENNY, ME, AFA_KOD, AFA_SZAZ, NYILV_AR, NYILV_ERT,
+                        BFOGY_AR, BFOGY_ERT, NFOGY_ERT, BTENY_AR, BTENY_ERT, NTENY_ERT, NENG_ERT, BENG_ERT, TVR_AZON
                        FROM BLOKK_TET
                        WHERE DATUM BETWEEN '%s' AND '%s' AND TRX_ID BETWEEN %s AND %s """ % ( fiveDayBefore.strftime("%Y.%m.%d"), date.today().strftime("%Y.%m.%d"), lastForgalomMysql, lastForgalomFb)
         ##get result from sql
@@ -206,8 +205,8 @@ def main():
 
             ## passing parameters number, csv file path, boltok, fetch all or one, query string
             insertMysql( 14, "csv/forgalom.csv", boltok, "all", """INSERT INTO blokk
-                                     (id, boltok_nr, datum, arukod_id, mennyiseg, ME, afa_kod. afa_szazalek,
-                                      nyilv_ar, nyilv_ertek, bfogy_ar, netto_fogy_ert, netto_teny_ert, brutto_teny_ertek) VALUES (""" )
+                                     (id, egyseg, pt_gep, datum, sorszam, arukod_id, menny, me, afa_kod. afa_szaz, nyilv_ar, nyilv_ertek,
+                                     bfogy_ar, bfogy_ert, nfogy_ert, bteny_ar, bteny_ert, nteny_ert, neng_ert, beng_ert, tvr_azon) VALUES (""" )
 
             clearCsv("csv/forgalom.csv")
 
