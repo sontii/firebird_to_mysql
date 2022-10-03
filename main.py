@@ -97,10 +97,7 @@ def main():
     ## last MIN-MAX id in forgalom query by date!!
     lastForgalomFb = queryFb( boltok, "one", """ SELECT MIN(TRX_ID), MAX(TRX_ID)
                                                FROM BLOKK_TET
-                                               WHERE DATUM BETWEEN '2022.02.01' AND '2022.02.28' """)
-
-    lastForgalomMinFb = int(lastForgalomFb[0])
-    lastForgalomMaxFb = int(lastForgalomFb[1])
+                                               WHERE DATUM BETWEEN '2022.01.01' AND '2022.01.31' """)
 
     ## last stored aru id in mysql for aru
     lastAruMysql = int(queryMysql( boltok, "one", """ SELECT max(arukod) FROM cikk"""))
@@ -194,33 +191,43 @@ def main():
 
             clearCsv("csv/tiltas.csv")
 
-    if lastForgalomMaxFb != lastForgalomMysql:
-        ### 
-        if lastForgalomMinFb > lastForgalomMysql:
-            lastForgalomMysql = lastForgalomMinFb
-        
-        ### blokk tetel forgalom
-        getQuery = """ SELECT TRX_ID, EGYSEG, PT_GEP, DATUM, SORSZAM, ARUKOD, MENNY, ME, AFA_KOD, AFA_SZAZ, NYILV_AR, NYILV_ERT,
-                        BFOGY_AR, BFOGY_ERT, NFOGY_ERT, BTENY_AR, BTENY_ERT, NTENY_ERT, NENG_ERT, BENG_ERT, TVR_AZON
-                       FROM BLOKK_TET
-                       WHERE DATUM BETWEEN '2022.02.01' AND '2022.02.28' AND TRX_ID BETWEEN %s AND %s """ % (lastForgalomMysql, lastForgalomMaxFb)
-
-        ##get result from sql
-        forgalomToCsv = queryFb(boltok, "all", getQuery)
-        if forgalomToCsv:
-        
-            ## write result to csv
-            writeToCsv(forgalomToCsv, "csv/forgalom.csv")
-
-            ## passing parameters number, csv file path, boltok, fetch all or one, query string
-            insertMysql( 21, "csv/forgalom.csv", boltok, "all", """INSERT INTO blokk
-                                     (id, egyseg, pt_gep, datum, sorszam, arukod_id, menny, me, afa_kod, afa_szaz, nyilv_ar, nyilv_ertek,
-                                     bfogy_ar, bfogy_ert, nfogy_ert, bteny_ar, bteny_ert, nteny_ert, neng_ert, beng_ert, tvr_azon) VALUES (""" )
-
-            clearCsv("csv/forgalom.csv")
     
-    end_time = datetime.now()
-    ## keep logs short. if need: logging.info(" " + datetime.now().strftime("%Y.%m.%d %H:%M:%S") + f" Duration: {end_time - start_time}")
+    ## if have forgalom data run
+    if lastForgalomFb:
+        lastForgalomMinFb = int(lastForgalomFb[0])
+        lastForgalomMaxFb = int(lastForgalomFb[1])
+
+        if lastForgalomMaxFb != lastForgalomMysql:
+            ### 
+            if lastForgalomMinFb > lastForgalomMysql:
+                lastForgalomMysql = lastForgalomMinFb
+
+            print(lastForgalomMinFb, lastForgalomMaxFb, lastForgalomMysql)
+
+            ### blokk tetel forgalom
+            getQuery = """ SELECT TRX_ID, EGYSEG, PT_GEP, DATUM, SORSZAM, ARUKOD, MENNY, ME, AFA_KOD, AFA_SZAZ, NYILV_AR, NYILV_ERT,
+                            BFOGY_AR, BFOGY_ERT, NFOGY_ERT, BTENY_AR, BTENY_ERT, NTENY_ERT, NENG_ERT, BENG_ERT, TVR_AZON
+                        FROM BLOKK_TET
+                        WHERE DATUM BETWEEN '2022.01.01' AND '2022.01.31' AND TRX_ID BETWEEN %s AND %s """ % (lastForgalomMysql, lastForgalomMaxFb)
+
+            ##get result from sql
+            forgalomToCsv = queryFb(boltok, "all", getQuery)
+            if forgalomToCsv:
+            
+                ## write result to csv
+                writeToCsv(forgalomToCsv, "csv/forgalom.csv")
+
+                ## passing parameters number, csv file path, boltok, fetch all or one, query string
+                insertMysql( 21, "csv/forgalom.csv", boltok, "all", """INSERT INTO blokk
+                                        (id, egyseg, pt_gep, datum, sorszam, arukod_id, menny, me, afa_kod, afa_szaz, nyilv_ar, nyilv_ertek,
+                                        bfogy_ar, bfogy_ert, nfogy_ert, bteny_ar, bteny_ert, nteny_ert, neng_ert, beng_ert, tvr_azon) VALUES (""" )
+
+                clearCsv("csv/forgalom.csv")
+    
+    
+    ## keep logs short. if need: 
+    ## end_time = datetime.now()
+    ## logging.info(" " + datetime.now().strftime("%Y.%m.%d %H:%M:%S") + f" Duration: {end_time - start_time}")
 
 
 if __name__ == "__main__":

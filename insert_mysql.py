@@ -32,7 +32,6 @@ def insertMysql(valuesNr, readFile, boltok, fetchType, query):
         ## open csv file
         with open(readFile, encoding="utf-8") as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=",")
-            next(csv_reader)
 
             ## cannot pass string %s params, build up here VALUES part
             for value in range(0, valuesNr):
