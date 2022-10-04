@@ -1,4 +1,4 @@
 fdb==2.0.2
-mysql-connector-2.2.9
+mysql-connector==2.2.9
 holidays==0.16
 python-dotenv==0.21.0
