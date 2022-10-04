@@ -7,8 +7,11 @@ from dotenv import load_dotenv
 
 from query_fb import *
 from query_mysql import *
+from to_delete_insert_mysql import *
 from insert_mysql import *
 from writetocsv import *
+
+import shutil
 
 load_dotenv()
 
@@ -61,7 +64,7 @@ def validateDate(date_text):
         exit('not valid date format yyyy.mm.dd')
 
 def main():
-    ## log duration
+    ## log duration enable at bottom
     start_time = datetime.now()
 
     yesterday = date.today() - timedelta(days=1)
@@ -97,7 +100,7 @@ def main():
     ## last MIN-MAX id in forgalom query by date!!
     lastForgalomFb = queryFb( boltok, "one", """ SELECT MIN(TRX_ID), MAX(TRX_ID)
                                                FROM BLOKK_TET
-                                               WHERE DATUM BETWEEN '2022.01.01' AND '2022.01.31' """)
+                                               WHERE DATUM BETWEEN '2022.03.01' AND '2022.05.31' """)
 
     ## last stored aru id in mysql for aru
     lastAruMysql = int(queryMysql( boltok, "one", """ SELECT max(arukod) FROM cikk"""))
@@ -125,8 +128,8 @@ def main():
         aruToCsv = queryFb(boltok, "all", getQuery)
         writeToCsv(aruToCsv, "csv/aru.csv")
 
-        ## passing parameters number, csv file path, boltok, fetch all or one, query string. query string other half is in insert_mysql.py
-        insertMysql(4, "csv/aru.csv", boltok, "all", """INSERT INTO cikk (arukod, rovid_nev, me, afa_kod) VALUES (""" )
+        ## Bulk insert to Mysql, csv - table name
+        insertMysqlBulk('csv/aru.csv', 'cikk')
 
         clearCsv("csv/aru.csv")
     
@@ -149,8 +152,8 @@ def main():
             ## write result to csv
             writeToCsv(eanToCsv, "csv/ean.csv")
             
-            ## passing parameters number, csv file path, boltok, fetch all or one, query string
-            insertMysql( 3, "csv/ean.csv", boltok, "all", """INSERT INTO ean (arukod_id, cikmny_id, ean_kod) VALUES (""" )
+            ## Bulk insert to Mysql, csv - table name
+            insertMysqlBulk('csv/ean.csv', 'ean')
             
             clearCsv("csv/ean.csv")
 
@@ -168,8 +171,8 @@ def main():
         if taltosToCsv:
             writeToCsv(taltosToCsv, "csv/taltos.csv")
         
-            ## passing parameters number, csv file path, boltok, fetch all or one, query string
-            insertMysql( 2, "csv/taltos.csv", boltok, "all", """INSERT INTO taltos (arukod_id, taltos_kod) VALUES (""" )
+            ## Bulk insert to Mysql, csv - table name
+            insertMysqlBulk('csv/taltos.csv', 'taltos')
             
             clearCsv("csv/taltos.csv")
     
@@ -186,11 +189,10 @@ def main():
             ## write result to csv
             writeToCsv(forgalomToCsv, "csv/tiltas.csv")
 
-            ## passing parameters number, csv file path, boltok, fetch all or one, query string
-            insertMysql( 4, "csv/tiltas.csv", boltok, "all", """INSERT INTO tiltas (tiltas_id, arukod_id, tiltas_nev_id, tiltas_nev) VALUES (""" )
+            ## Bulk insert to Mysql, csv - table name
+            insertMysqlBulk('csv/tiltas.csv', 'tiltas')
 
             clearCsv("csv/tiltas.csv")
-
     
     ## if have forgalom data run
     if lastForgalomFb:
@@ -202,28 +204,32 @@ def main():
             if lastForgalomMinFb > lastForgalomMysql:
                 lastForgalomMysql = lastForgalomMinFb
 
-            print(lastForgalomMinFb, lastForgalomMaxFb, lastForgalomMysql)
-
             ### blokk tetel forgalom
             getQuery = """ SELECT TRX_ID, EGYSEG, PT_GEP, DATUM, SORSZAM, ARUKOD, MENNY, ME, AFA_KOD, AFA_SZAZ, NYILV_AR, NYILV_ERT,
                             BFOGY_AR, BFOGY_ERT, NFOGY_ERT, BTENY_AR, BTENY_ERT, NTENY_ERT, NENG_ERT, BENG_ERT, TVR_AZON
                         FROM BLOKK_TET
-                        WHERE DATUM BETWEEN '2022.01.01' AND '2022.01.31' AND TRX_ID BETWEEN %s AND %s """ % (lastForgalomMysql, lastForgalomMaxFb)
+                        WHERE DATUM BETWEEN '2022.03.01' AND '2022.05.31' AND TRX_ID BETWEEN %s AND %s """ % (lastForgalomMysql, lastForgalomMaxFb)
 
             ##get result from sql
             forgalomToCsv = queryFb(boltok, "all", getQuery)
+
             if forgalomToCsv:
-            
+
                 ## write result to csv
                 writeToCsv(forgalomToCsv, "csv/forgalom.csv")
 
-                ## passing parameters number, csv file path, boltok, fetch all or one, query string
-                insertMysql( 21, "csv/forgalom.csv", boltok, "all", """INSERT INTO blokk
-                                        (id, egyseg, pt_gep, datum, sorszam, arukod_id, menny, me, afa_kod, afa_szaz, nyilv_ar, nyilv_ertek,
-                                        bfogy_ar, bfogy_ert, nfogy_ert, bteny_ar, bteny_ert, nteny_ert, neng_ert, beng_ert, tvr_azon) VALUES (""" )
+                #original = "csv/forgalom.csv"
+                #target = "csv/forgalom_copy.csv"
+                #shutil.copyfile(original, target)
+
+                ## Bulk insert to Mysql, csv - table name
+                insertMysqlBulk('csv/forgalom.csv', 'blokk')
 
                 clearCsv("csv/forgalom.csv")
-    
+
+
+    end_time = datetime.now()
+    print('start query' + f" Duration: {end_time - start_time}")
     
     ## keep logs short. if need: 
     ## end_time = datetime.now()
