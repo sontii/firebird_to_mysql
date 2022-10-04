@@ -19,8 +19,11 @@ logging.basicConfig(filename="log/logfile.log",
 def queryFb(boltok, fetchType, query):
     try:
         connection = fdb.connect(
-            host=fbHost, database=fbData,
-            user=fbUser, password=fbPass
+            host=fbHost,
+            database=fbData,
+            user=fbUser,
+            password=fbPass,
+            charset='utf-8'
         )
         cursor = connection.cursor()
 
