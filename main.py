@@ -1,4 +1,10 @@
 import sys
+
+## cron job set relativ path
+import os
+scriptdir =  os.path.dirname(os.path.abspath(__file__))
+os.chdir(scriptdir)
+
 import datetime
 from datetime import date, datetime, timedelta
 import holidays
@@ -7,11 +13,8 @@ from dotenv import load_dotenv
 
 from query_fb import *
 from query_mysql import *
-from to_delete_insert_mysql import *
 from insert_mysql import *
 from writetocsv import *
-
-import shutil
 
 load_dotenv()
 
@@ -71,8 +74,8 @@ def main():
     fiveDayBefore = date.today() - timedelta(days=5)
     holiday = dateHoliday(yesterday)
     sunday = dateSunday(yesterday)
-   
-    # if argv set dates 
+
+    # if argv set dates
     if len(sys.argv) == 3:
         startDate = sys.argv[1]
         endDate = sys.argv[2]
@@ -100,14 +103,14 @@ def main():
     ## last MIN-MAX id in forgalom query by date!!
     lastForgalomFb = queryFb( boltok, "one", """ SELECT MIN(TRX_ID), MAX(TRX_ID)
                                                FROM BLOKK_TET
-                                               WHERE DATUM BETWEEN '2022.03.01' AND '2022.05.31' """)
+                                               WHERE DATUM BETWEEN '%s' AND '%s' """ % (fiveDayBefore.strftime("%Y.%m.%d"), date.today().strftime("%Y.%m.%d")))
 
     ## last stored aru id in mysql for aru
     lastAruMysql = int(queryMysql( boltok, "one", """ SELECT max(arukod) FROM cikk"""))
 
     ## last stored CIKMNY id in mysql for ean
     lastCIKMNYMysql = int(queryMysql( boltok, "one", """ SELECT max(cikmny_id) FROM ean"""))
-   
+
     ## last stored id in mysql for tiltott cikk
     lastTiltasMysql = int(queryMysql( boltok, "one", """ SELECT max(tiltas_id) FROM tiltas"""))
 
@@ -116,6 +119,7 @@ def main():
 
     # INSERTS:
     ## get aru from firebird and pass to mysql
+
     if lastAruFb != lastAruMysql:
         getQuery = """ SELECT CIK.ID, CIK.NEV, MNY.KOD, BSR.AFA_ID
                         FROM CIK
@@ -126,21 +130,21 @@ def main():
                         WHERE CIK.ID BETWEEN %s AND %s AND KPC_ID = 1 """ % ( lastAruMysql + 1, lastAruFb)
 
         aruToCsv = queryFb(boltok, "all", getQuery)
+
         writeToCsv(aruToCsv, "csv/aru.csv")
 
         ## Bulk insert to Mysql, csv - table name
         insertMysqlBulk('csv/aru.csv', 'cikk')
 
         clearCsv("csv/aru.csv")
-    
-    
+
     ## get ean and taltos from firebird and pass to mysql
     if lastCIKMNYFb != lastCIKMNYMysql:
-        
+
         ### EAN
         getQuery = """ SELECT CIK_ID, CIKMNY.ID, CIKKOD.KOD
                        FROM CIK
-                       JOIN CIKMNY ON CIKMNY.CIK_ID = CIK."ID"  
+                       JOIN CIKMNY ON CIKMNY.CIK_ID = CIK."ID"
                        JOIN CIKKOD ON CIKKOD.CIKMNY_ID = CIKMNY.ID
                        LEFT JOIN CIKKODKPC ON CIKKOD.KPC_ID  = CIKKODKPC.ID
                        WHERE CIKMNY.ID BETWEEN %s AND %s AND CIKKOD.KPC_ID = 3""" % ( lastCIKMNYMysql + 1, lastCIKMNYFb)
@@ -151,10 +155,10 @@ def main():
         if eanToCsv:
             ## write result to csv
             writeToCsv(eanToCsv, "csv/ean.csv")
-            
+
             ## Bulk insert to Mysql, csv - table name
             insertMysqlBulk('csv/ean.csv', 'ean')
-            
+
             clearCsv("csv/ean.csv")
 
         ### TALTOS
@@ -170,12 +174,12 @@ def main():
         ## write result to csv
         if taltosToCsv:
             writeToCsv(taltosToCsv, "csv/taltos.csv")
-        
+
             ## Bulk insert to Mysql, csv - table name
             insertMysqlBulk('csv/taltos.csv', 'taltos')
-            
+
             clearCsv("csv/taltos.csv")
-    
+
     if lastTiltasFb != lastTiltasMysql:
         ### tiltott cikkek
         getQuery = """ SELECT CIKUZF.ID, CIKUZF.CIK_ID, CIKUZF.UZF_ID, UZF.NEV
@@ -185,7 +189,7 @@ def main():
         ##get result from sql
         forgalomToCsv = queryFb(boltok, "all", getQuery)
         if forgalomToCsv:
-        
+
             ## write result to csv
             writeToCsv(forgalomToCsv, "csv/tiltas.csv")
 
@@ -193,14 +197,14 @@ def main():
             insertMysqlBulk('csv/tiltas.csv', 'tiltas')
 
             clearCsv("csv/tiltas.csv")
-    
+
     ## if have forgalom data run
     if lastForgalomFb:
         lastForgalomMinFb = int(lastForgalomFb[0])
         lastForgalomMaxFb = int(lastForgalomFb[1])
 
         if lastForgalomMaxFb != lastForgalomMysql:
-            ### 
+            ###
             if lastForgalomMinFb > lastForgalomMysql:
                 lastForgalomMysql = lastForgalomMinFb
 
@@ -208,7 +212,7 @@ def main():
             getQuery = """ SELECT TRX_ID, EGYSEG, PT_GEP, DATUM, SORSZAM, ARUKOD, MENNY, ME, AFA_KOD, AFA_SZAZ, NYILV_AR, NYILV_ERT,
                             BFOGY_AR, BFOGY_ERT, NFOGY_ERT, BTENY_AR, BTENY_ERT, NTENY_ERT, NENG_ERT, BENG_ERT, TVR_AZON
                         FROM BLOKK_TET
-                        WHERE DATUM BETWEEN '2022.03.01' AND '2022.05.31' AND TRX_ID BETWEEN %s AND %s """ % (lastForgalomMysql, lastForgalomMaxFb)
+                        WHERE DATUM BETWEEN '%s' AND '%s' AND TRX_ID BETWEEN %s AND %s """ % (fiveDayBefore.strftime("%Y.%m.%d"), date.today().strftime("%Y.%m.%d"), lastForgalomMysql + 1, lastForgalomMaxFb)
 
             ##get result from sql
             forgalomToCsv = queryFb(boltok, "all", getQuery)
@@ -218,10 +222,6 @@ def main():
                 ## write result to csv
                 writeToCsv(forgalomToCsv, "csv/forgalom.csv")
 
-                #original = "csv/forgalom.csv"
-                #target = "csv/forgalom_copy.csv"
-                #shutil.copyfile(original, target)
-
                 ## Bulk insert to Mysql, csv - table name
                 insertMysqlBulk('csv/forgalom.csv', 'blokk')
 
@@ -230,8 +230,8 @@ def main():
 
     end_time = datetime.now()
     print('start query' + f" Duration: {end_time - start_time}")
-    
-    ## keep logs short. if need: 
+
+    ## keep logs short. if need:
     ## end_time = datetime.now()
     ## logging.info(" " + datetime.now().strftime("%Y.%m.%d %H:%M:%S") + f" Duration: {end_time - start_time}")
 
