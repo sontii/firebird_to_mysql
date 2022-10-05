@@ -1,4 +1,8 @@
 import sys
+import os
+scriptdir =  os.path.dirname(os.path.abspath(__file__))
+os.chdir(scriptdir)
+
 import datetime
 from datetime import date, datetime, timedelta
 import holidays
