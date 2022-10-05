@@ -1,4 +1,6 @@
 import sys
+
+## cron job set relativ path
 import os
 scriptdir =  os.path.dirname(os.path.abspath(__file__))
 os.chdir(scriptdir)
