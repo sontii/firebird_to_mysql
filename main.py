@@ -86,8 +86,8 @@ def main():
                               + " start date cannot be greater than end date")
             exit('start date cannot be greater than end date')
     else:
-        startDate = yesterday.strftime("%Y.%m.%d")
-        endDate = startDate
+        startDate = fiveDayBefore.strftime("%Y.%m.%d")
+        endDate = date.today().strftime("%Y.%m.%d")
 
 
     # QUERYS:
@@ -103,7 +103,7 @@ def main():
     ## last MIN-MAX id in forgalom query by date!!
     lastForgalomFb = queryFb( boltok, "one", """ SELECT MIN(TRX_ID), MAX(TRX_ID)
                                                FROM BLOKK_TET
-                                               WHERE DATUM BETWEEN '%s' AND '%s' """ % (fiveDayBefore.strftime("%Y.%m.%d"), date.today().strftime("%Y.%m.%d")))
+                                               WHERE DATUM BETWEEN '%s' AND '%s' """ % (startDate, endDate))
 
     ## last stored aru id in mysql for aru
     lastAruMysql = int(queryMysql( boltok, "one", """ SELECT max(arukod) FROM cikk"""))
@@ -212,7 +212,7 @@ def main():
             getQuery = """ SELECT TRX_ID, EGYSEG, PT_GEP, DATUM, SORSZAM, ARUKOD, MENNY, ME, AFA_KOD, AFA_SZAZ, NYILV_AR, NYILV_ERT,
                             BFOGY_AR, BFOGY_ERT, NFOGY_ERT, BTENY_AR, BTENY_ERT, NTENY_ERT, NENG_ERT, BENG_ERT, TVR_AZON
                         FROM BLOKK_TET
-                        WHERE DATUM BETWEEN '%s' AND '%s' AND TRX_ID BETWEEN %s AND %s """ % (fiveDayBefore.strftime("%Y.%m.%d"), date.today().strftime("%Y.%m.%d"), lastForgalomMysql + 1, lastForgalomMaxFb)
+                        WHERE DATUM BETWEEN '%s' AND '%s' AND TRX_ID BETWEEN %s AND %s """ % (startDate, endDate, lastForgalomMysql + 1, lastForgalomMaxFb)
 
             ##get result from sql
             forgalomToCsv = queryFb(boltok, "all", getQuery)
