@@ -60,7 +60,7 @@ def dateHoliday(yesterday):
 ### validate date format befor using it
 def validateDate(date_text):
     try:
-        datetime.datetime.strptime(date_text, "%Y.%m.%d")
+        datetime.strptime(date_text, "%Y.%m.%d")
     except ValueError:
         logging.error(" " + datetime.now().strftime("%Y.%m.%d %H:%M:%S")
                           + " not valid date format yyyy.mm.dd")
@@ -88,7 +88,6 @@ def main():
     else:
         startDate = fiveDayBefore.strftime("%Y.%m.%d")
         endDate = date.today().strftime("%Y.%m.%d")
-
 
     # QUERYS:
     ## get last id for aru (boltok, fetchType, query script)
