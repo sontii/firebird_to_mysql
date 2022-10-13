@@ -198,6 +198,12 @@ def main():
 
             clearCsv("csv/tiltas.csv")
 
+    ### TODO
+    """ SELECT CCSCIK.ID, CCS.KOD 
+    FROM CCSCIK
+    JOIN CCS ON CCSCIK.CCS_ID  = CCS.ID
+    WHERE HIERARCHIA_SZINT = 5 AND CIK_ID = 3472414 """
+
     ## if have forgalom data run
     if lastForgalomFb:
         lastForgalomMinFb = int(lastForgalomFb[0])
