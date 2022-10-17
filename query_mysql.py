@@ -16,7 +16,7 @@ mysqlUser = os.getenv("MYSQLUSER")
 mysqlPass = os.getenv("MYSQLPASS")
 
 
-def queryMysql(boltok, fetchType, query):
+def queryMysql(fetchType, query):
 
     try:
         connection = mysql.connector.connect(host=mysqlHost,

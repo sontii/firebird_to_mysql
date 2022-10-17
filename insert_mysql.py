@@ -17,7 +17,7 @@ mysqlPass = os.getenv("MYSQLPASS")
 
 
 ## passing parameters number, csv file path, boltok, fetch all or one, query string
-def insertMysql(valuesNr, readFile, boltok, fetchType, query):
+def insertMysql(valuesNr, readFile, fetchType, query):
     try:
         connection = mysql.connector.connect(
             host=mysqlHost,

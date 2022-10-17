@@ -17,8 +17,8 @@ from insert_mysql_bulk import *
 from writetocsv import *
 
 ### from insert_mysql import *
-### ## passing parameters number, csv file path, boltok, fetch all or one, query string
-### insertMysql( 3, "ean.csv", boltok, "all", """INSERT INTO ean (arukod_id, cikmny_id, ean_kod) VALUES (""" )
+### ## passing parameters number, csv file path, fetch all or one, query string
+### insertMysql( 3, "ean.csv", "all", """INSERT INTO ean (arukod_id, cikmny_id, ean_kod) VALUES (""" )
 
 load_dotenv()
 
@@ -94,31 +94,45 @@ def main():
         endDate = date.today().strftime("%Y.%m.%d")
 
     # QUERYS:
-    ## get last id for aru (boltok, fetchType, query script)
-    lastAruFb = int(queryFb( boltok, "one", """ SELECT FIRST 1 ID FROM CIK ORDER BY ID DESC """)[0])
+    # FIREBIRD
+    ## get last id for aru (fetchType, query script)
+    lastAruFb = int(queryFb("one", """ SELECT FIRST 1 ID FROM CIK ORDER BY ID DESC """)[0])
 
     ## last CIKMNY id for ean
-    lastCIKMNYFb = int(queryFb( boltok, "one", """ SELECT FIRST 1 ID FROM CIKMNY ORDER BY ID DESC """)[0])
+    lastCIKMNYFb = int(queryFb("one", """ SELECT FIRST 1 ID FROM CIKMNY ORDER BY ID DESC """)[0])
 
     ## last id for tiltott cikk
-    lastTiltasFb = int(queryFb( boltok, "one", """ SELECT FIRST 1 ID FROM CIKUZF ORDER BY ID DESC """)[0])
+    lastTiltasFb = int(queryFb("one", """ SELECT FIRST 1 ID FROM CIKUZF ORDER BY ID DESC """)[0])
 
     ## last MIN-MAX id in forgalom query by date!!
-    lastForgalomFb = queryFb( boltok, "one", """ SELECT MIN(TRX_ID), MAX(TRX_ID)
+    lastForgalomFb = queryFb("one", """ SELECT MIN(TRX_ID), MAX(TRX_ID)
                                                FROM BLOKK_TET
                                                WHERE DATUM BETWEEN '%s' AND '%s' """ % (startDate, endDate))
+    
+    ## last id for Nomenklatura
+    lastNomenklaturaFb = int(queryFb("one", """ SELECT FIRST 1 ID FROM CCS WHERE HIERARCHIA_SZINT = 5 ORDER BY ID DESC  """)[0])
 
+    ## last id for cikk_csoport
+    lastCikk_csoportFb = int(queryFb("one", """ SELECT FIRST 1 ID FROM CCSCIK ORDER BY ID DESC """)[0])
+
+    # MYSQL
     ## last stored aru id in mysql for aru
-    lastAruMysql = int(queryMysql( boltok, "one", """ SELECT max(arukod) FROM cikk"""))
+    lastAruMysql = int(queryMysql("one", """ SELECT max(arukod) FROM cikk"""))
 
     ## last stored CIKMNY id in mysql for ean
-    lastCIKMNYMysql = int(queryMysql( boltok, "one", """ SELECT max(cikmny_id) FROM ean"""))
+    lastCIKMNYMysql = int(queryMysql("one", """ SELECT max(cikmny_id) FROM ean"""))
 
     ## last stored id in mysql for tiltott cikk
-    lastTiltasMysql = int(queryMysql( boltok, "one", """ SELECT max(tiltas_id) FROM tiltas"""))
+    lastTiltasMysql = int(queryMysql("one", """ SELECT max(tiltas_id) FROM tiltas"""))
 
     ## last stored id in mysql for forgalom
-    lastForgalomMysql = int(queryMysql( boltok, "one", """ SELECT max(id) FROM blokk"""))
+    lastForgalomMysql = int(queryMysql("one", """ SELECT max(id) FROM blokk"""))
+
+    ## last stored id in mysql for nomenklatura
+    lastNomenklaturaMysql = int(queryMysql("one", """ SELECT max(id) FROM nomenklatura"""))
+
+    ## last stored id in mysql for Cikk_csoport
+    lastCikk_csoportMysql = int(queryMysql("one", """ SELECT max(id) FROM cikk_csoport"""))
 
     # INSERTS:
     ## get aru from firebird and pass to mysql
@@ -132,7 +146,7 @@ def main():
                         JOIN MNY ON MNY.ID=CIKMNY.MNY_ID
                         WHERE CIK.ID BETWEEN %s AND %s AND KPC_ID = 1 """ % ( lastAruMysql + 1, lastAruFb)
 
-        aruToCsv = queryFb(boltok, "all", getQuery)
+        aruToCsv = queryFb( "all", getQuery)
 
         writeToCsv(aruToCsv, "csv/aru.csv")
 
@@ -153,7 +167,7 @@ def main():
                        WHERE CIKMNY.ID BETWEEN %s AND %s AND CIKKOD.KPC_ID = 3""" % ( lastCIKMNYMysql + 1, lastCIKMNYFb)
 
         ##get result from sql
-        eanToCsv = queryFb(boltok, "all", getQuery)
+        eanToCsv = queryFb("all", getQuery)
 
         if eanToCsv:
             ## write result to csv
@@ -173,7 +187,7 @@ def main():
                        WHERE CIKMNY.ID BETWEEN %s AND %s AND CIKKOD.KPC_ID = 10""" % ( lastCIKMNYMysql + 1, lastCIKMNYFb)
 
         ##get result from sql
-        taltosToCsv = queryFb(boltok, "all", getQuery)
+        taltosToCsv = queryFb("all", getQuery)
         ## write result to csv
         if taltosToCsv:
             writeToCsv(taltosToCsv, "csv/taltos.csv")
@@ -190,22 +204,53 @@ def main():
                        JOIN UZF ON CIKUZF.UZF_ID = UZF.ID
                        WHERE CIKUZF.ID BETWEEN %s AND %s """ % ( lastTiltasMysql + 1, lastTiltasFb)
         ##get result from sql
-        forgalomToCsv = queryFb(boltok, "all", getQuery)
-        if forgalomToCsv:
+        tiltasToCsv = queryFb("all", getQuery)
+        if tiltasToCsv:
 
             ## write result to csv
-            writeToCsv(forgalomToCsv, "csv/tiltas.csv")
+            writeToCsv(tiltasToCsv, "csv/tiltas.csv")
 
             ## Bulk insert to Mysql, csv - table name
             insertMysqlBulk('csv/tiltas.csv', 'tiltas')
 
             clearCsv("csv/tiltas.csv")
 
-    ### TODO
-    """ SELECT CCSCIK.ID, CCS.KOD 
-    FROM CCSCIK
-    JOIN CCS ON CCSCIK.CCS_ID  = CCS.ID
-    WHERE HIERARCHIA_SZINT = 5 AND CIK_ID = 3472414 """
+    if lastNomenklaturaFb != lastNomenklaturaMysql:
+        ### nomenklatura besorolas
+        getQuery = """ SELECT CCS.ID, CCS.KOD, CCS.NEV
+                       FROM CCS
+                       WHERE HIERARCHIA_SZINT = 5 AND CCS.ID BETWEEN %s AND %s  """ % ( lastNomenklaturaMysql + 1, lastNomenklaturaFb)
+        
+        ##get result from sql
+        nomenklaturaToCsv = queryFb("all", getQuery)
+        if nomenklaturaToCsv:
+
+            ## write result to csv
+            writeToCsv(nomenklaturaToCsv, "csv/nomenklatura.csv")
+
+            ## Bulk insert to Mysql, csv - table name
+            insertMysqlBulk('csv/nomenklatura.csv', 'nomenklatura')
+
+            clearCsv("csv/nomenklatura.csv")
+    
+    if lastCikk_csoportFb != lastCikk_csoportMysql:
+        ### nomenklatura besorolas
+        getQuery = """ SELECT CCSCIK.ID, CCSCIK.CCS_ID, CCSCIK.CIK_ID 
+                       FROM CCSCIK
+                       WHERE CCSCIK.ID BETWEEN %s AND %s """ % ( lastCikk_csoportMysql + 1, lastCikk_csoportFb)
+        
+        ##get result from sql
+        cikk_csoportToCsv = queryFb("all", getQuery)
+        if cikk_csoportToCsv:
+
+            ## write result to csv
+            writeToCsv(cikk_csoportToCsv, "csv/cikk_csoport.csv")
+
+            ## Bulk insert to Mysql, csv - table name
+            insertMysqlBulk('csv/cikk_csoport.csv', 'cikk_csoport')
+
+            clearCsv("csv/cikk_csoport.csv")
+    
 
     ## if have forgalom data run
     if lastForgalomFb:
@@ -224,7 +269,7 @@ def main():
                         WHERE DATUM BETWEEN '%s' AND '%s' AND TRX_ID BETWEEN %s AND %s """ % (startDate, endDate, lastForgalomMysql + 1, lastForgalomMaxFb)
 
             ##get result from sql
-            forgalomToCsv = queryFb(boltok, "all", getQuery)
+            forgalomToCsv = queryFb("all", getQuery)
 
             if forgalomToCsv:
 

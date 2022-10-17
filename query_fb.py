@@ -16,7 +16,7 @@ logging.basicConfig(filename="log/logfile.log",
                     encoding='utf-8', level=logging.INFO)
 
 
-def queryFb(boltok, fetchType, query):
+def queryFb(fetchType, query):
     try:
         connection = fdb.connect(
             host=fbHost,
