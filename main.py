@@ -13,8 +13,12 @@ from dotenv import load_dotenv
 
 from query_fb import *
 from query_mysql import *
-from insert_mysql import *
+from insert_mysql_bulk import *
 from writetocsv import *
+
+### from insert_mysql import *
+### ## passing parameters number, csv file path, boltok, fetch all or one, query string
+### insertMysql( 3, "ean.csv", boltok, "all", """INSERT INTO ean (arukod_id, cikmny_id, ean_kod) VALUES (""" )
 
 load_dotenv()
 

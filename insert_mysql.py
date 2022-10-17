@@ -17,24 +17,46 @@ mysqlPass = os.getenv("MYSQLPASS")
 
 
 ## passing parameters number, csv file path, boltok, fetch all or one, query string
-def insertMysqlBulk(readFile, tableName):
+def insertMysql(valuesNr, readFile, boltok, fetchType, query):
     try:
         connection = mysql.connector.connect(
             host=mysqlHost,
             database=mysqlData,
             user=mysqlUser,
             password=mysqlPass,
-            auth_plugin="mysql_native_password",
-            allow_local_infile=True,
-            autocommit=True
+            auth_plugin="mysql_native_password"
         )
-
-        load_sql = f"LOAD DATA LOCAL INFILE '{readFile}' INTO TABLE {tableName} FIELDS TERMINATED BY ',' ENCLOSED BY ''"
 
         cursor = connection.cursor()
 
-        cursor.execute(load_sql)
-        
+        ## open csv file
+        with open(readFile, encoding="utf-8") as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=",")
+            next(csv_reader)
+
+            ## cannot pass string %s params, build up here VALUES part
+            for value in range(0, valuesNr):
+                query = query + " %s,"
+            ## remove tail ","
+            query = query[:-1]
+            query = query + ")"
+
+            ## read 1000 row then execute many, and repeat
+            rows = []
+            row_count = 0
+            for row in csv_reader:
+                row_count += 1
+                rows.append(row)
+                if row_count == 1000:
+                    cursor.executemany(query, rows)
+                    rows = []
+                    row_count = 0
+	
+            if rows:
+                cursor.executemany(query, rows)
+
+        ## after insert need commit
+        connection.commit()
         cursor.close()
         connection.close()
 
