@@ -138,7 +138,7 @@ def main():
     ## get aru from firebird and pass to mysql
 
     if lastAruFb != lastAruMysql:
-        getQuery = """ SELECT CIK.ID, CIK.NEV, MNY.KOD, BSR.AFA_ID
+        getQuery = """ SELECT CIK.ID, CIK.KOD, CIK.NEV, MNY.KOD, BSR.AFA_ID
                         FROM CIK
                         JOIN CIKADT ON CIK_ID=CIK.ID
                         JOIN BSR ON CIKADT.BSR_ID=BSR.ID
