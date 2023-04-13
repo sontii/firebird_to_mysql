@@ -117,7 +117,7 @@ def main():
 
     # MYSQL
     ## last stored aru id in mysql for aru
-    lastAruMysql = int(queryMysql("one", """ SELECT max(arukod) FROM cikk"""))
+    lastAruMysql = int(queryMysql("one", """ SELECT max(cikk_id) FROM cikk"""))
 
     ## last stored CIKMNY id in mysql for ean
     lastCIKMNYMysql = int(queryMysql("one", """ SELECT max(cikmny_id) FROM ean"""))
