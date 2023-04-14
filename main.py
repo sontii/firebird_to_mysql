@@ -219,7 +219,7 @@ def main():
         ### nomenklatura besorolas
         getQuery = """ SELECT CCS.ID, CCS.KOD, CCS.NEV
                        FROM CCS
-                       WHERE HIERARCHIA_SZINT = 5 AND CCS.ID BETWEEN %s AND %s  """ % ( lastNomenklaturaMysql + 1, lastNomenklaturaFb)
+                       WHERE CCS.ID BETWEEN %s AND %s  """ % ( lastNomenklaturaMysql + 1, lastNomenklaturaFb)
         
         ##get result from sql
         nomenklaturaToCsv = queryFb("all", getQuery)
