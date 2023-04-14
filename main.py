@@ -217,7 +217,7 @@ def main():
 
     if lastNomenklaturaFb != lastNomenklaturaMysql:
         ### nomenklatura besorolas
-        getQuery = """ SELECT CCS.ID, CCS.KOD, CCS.NEV
+        getQuery = """ SELECT CCS.ID, CCS.KOD, CCS.NEV, CCS.HIERARCHIA_SZINT
                        FROM CCS
                        WHERE CCS.ID BETWEEN %s AND %s  """ % ( lastNomenklaturaMysql + 1, lastNomenklaturaFb)
         
