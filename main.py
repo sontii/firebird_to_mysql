@@ -7,7 +7,6 @@ os.chdir(scriptdir)
 
 import datetime
 from datetime import date, datetime, timedelta
-import holidays
 import logging
 from dotenv import load_dotenv
 
@@ -47,19 +46,6 @@ def clearCsv(fileToClear):
     f = open(fileToClear, "w+")
     f.close()
 
-### check if date is sunday
-def dateSunday(yesterday):
-    if date.weekday(yesterday) == 6:
-        return True
-    return False
-
-### check if date is sunday or holiday
-def dateHoliday(yesterday):
-    hu_holidays = holidays.HU()
-    if yesterday in hu_holidays:
-        return True
-    return False
-
 
 ### validate date format befor using it
 def validateDate(date_text):
@@ -76,8 +62,6 @@ def main():
 
     yesterday = date.today() - timedelta(days=1)
     fiveDayBefore = date.today() - timedelta(days=5)
-    holiday = dateHoliday(yesterday)
-    sunday = dateSunday(yesterday)
 
     # if argv set dates
     if len(sys.argv) == 3:

@@ -29,7 +29,10 @@ def insertMysqlBulk(readFile, tableName):
             autocommit=True
         )
 
-        load_sql = f"LOAD DATA LOCAL INFILE '{readFile}' INTO TABLE {tableName} FIELDS TERMINATED BY ',' ENCLOSED BY ''"
+        load_sql = f"""LOAD DATA LOCAL INFILE '{readFile}'
+                        INTO TABLE {tableName}
+                        FIELDS TERMINATED BY ','
+                        OPTIONALLY ENCLOSED BY '"' """
 
         cursor = connection.cursor()
 
