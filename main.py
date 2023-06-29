@@ -99,6 +99,9 @@ def main():
     ## last id for cikk_csoport
     lastCikk_csoportFb = int(queryFb("one", """ SELECT FIRST 1 ID FROM CCSCIK ORDER BY ID DESC """)[0])
 
+    ## last id for grillbesz
+    lastGrillBznFb = int(queryFb("one", """ SELECT FIRST 1 ID FROM BZN ORDER BY ID DESC """)[0])
+
     # MYSQL
     ## last stored aru id in mysql for aru
     lastAruMysql = int(queryMysql("one", """ SELECT max(cikk_id) FROM cikk"""))
@@ -117,6 +120,18 @@ def main():
 
     ## last stored id in mysql for Cikk_csoport
     lastCikk_csoportMysql = int(queryMysql("one", """ SELECT max(id) FROM cikk_csoport"""))
+
+    ## last stored id in mysql for Cikk_csoport
+    lastGrillBznMysql = int(queryMysql("one", """ SELECT max(id) FROM bzn_grill"""))
+
+    """ SELECT SUM(bzntetart.ertek), bzntet.mozgas_minosito_kod, BZN.BIZONYLAT_DATUM, BZN.EGYSEG_KOD 
+        FROM bzntet 
+        JOIN bzntetart on bzntet.id = bzntetart.bzntet_id
+        JOIN BZN ON BZNTET.BZN_ID = BZN.ID
+        WHERE BZN.BIZONYLAT_DATUM BETWEEN '2023.06.23' AND '2023.06.23 23:59:59'
+        GROUP BY bzntet.bzn_id, bzntetart.bznarttps_id, bzntet.mozgas_minosito_kod, BZN.BIZONYLAT_DATUM, BZN.EGYSEG_KOD 
+        HAVING (bzntetart.bznarttps_id = 17 and (bzntet.mozgas_minosito_kod= '103' or bzntet.mozgas_minosito_kod= '114')) """
+
 
     # INSERTS:
     ## get aru from firebird and pass to mysql
