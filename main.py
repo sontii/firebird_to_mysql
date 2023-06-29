@@ -100,7 +100,7 @@ def main():
     lastCikk_csoportFb = int(queryFb("one", """ SELECT FIRST 1 ID FROM CCSCIK ORDER BY ID DESC """)[0])
 
     ## last id for grillbesz
-    lastGrillBznFb = int(queryFb("one", """ SELECT FIRST 1 ID FROM BZN ORDER BY ID DESC """)[0])
+    ## lastGrillBznFb = int(queryFb("one", """ SELECT FIRST 1 ID FROM BZN ORDER BY ID DESC """)[0])
 
     # MYSQL
     ## last stored aru id in mysql for aru
@@ -122,16 +122,48 @@ def main():
     lastCikk_csoportMysql = int(queryMysql("one", """ SELECT max(id) FROM cikk_csoport"""))
 
     ## last stored id in mysql for Cikk_csoport
-    lastGrillBznMysql = int(queryMysql("one", """ SELECT max(id) FROM bzn_grill"""))
+    ## lastGrillBznMysql = int(queryMysql("one", """ SELECT max(id) FROM bzn_grill"""))
 
-    """ SELECT SUM(bzntetart.ertek), bzntet.mozgas_minosito_kod, BZN.BIZONYLAT_DATUM, BZN.EGYSEG_KOD 
+    """ SELECT  BZN.BIZONYLAT_DATUM, BZN.EGYSEG_KOD, SUM(bzntetart.ertek), bzntet.mozgas_minosito_kod
         FROM bzntet 
         JOIN bzntetart on bzntet.id = bzntetart.bzntet_id
         JOIN BZN ON BZNTET.BZN_ID = BZN.ID
-        WHERE BZN.BIZONYLAT_DATUM BETWEEN '2023.06.23' AND '2023.06.23 23:59:59'
+        WHERE BZN.BIZONYLAT_DATUM BETWEEN '2022.06.23' AND '2023.06.23 23:59:59'
         GROUP BY bzntet.bzn_id, bzntetart.bznarttps_id, bzntet.mozgas_minosito_kod, BZN.BIZONYLAT_DATUM, BZN.EGYSEG_KOD 
         HAVING (bzntetart.bznarttps_id = 17 and (bzntet.mozgas_minosito_kod= '103' or bzntet.mozgas_minosito_kod= '114')) """
 
+    getQuery = """ SELECT BZN.BIZONYLAT_DATUM, BZN.EGYSEG_KOD, SUM(BZNTETART.ERTEK), BZNTET.MOZGAS_MINOSITO_KOD 
+                    FROM BZNTET
+                    JOIN BZNTETART ON BZNTET.ID = BZNTETART.BZNTET_ID
+                    JOIN BZN ON BZNTET.BZN_ID = BZN.ID
+                    WHERE BZN.BIZONYLAT_DATUM BETWEEN '2022.05.01' AND '2023.06.15 23:59:59'
+                    GROUP BY BZNTET.BZN_ID, BZNTETART.BZNARTTPS_ID, BZNTET.MOZGAS_MINOSITO_KOD, BZN.BIZONYLAT_DATUM, BZN.EGYSEG_KOD 
+                    HAVING (BZNTETART.BZNARTTPS_ID = 17 AND (BZNTET.MOZGAS_MINOSITO_KOD= '103' OR BZNTET.MOZGAS_MINOSITO_KOD= '114'))
+                    ORDER BY BZN.BIZONYLAT_DATUM """
+
+    ##get result from sql
+    grillBeszToCsv = queryFb("fetchAll", getQuery)
+    
+    if grillBeszToCsv:
+
+        for index, data in enumerate(grillBeszToCsv):
+            row = list(data)
+            row[0] = row[0].date()
+            row.insert(0, '')
+            data = tuple(row)
+
+            grillBeszToCsv[index] = data
+
+        ## write result to csv
+        writeToCsv(grillBeszToCsv, "csv/grill_besz.csv")
+
+        
+        ## Bulk insert to Mysql, csv - table name
+        insertMysqlBulk('csv/grill_besz.csv', 'grill_besz')
+
+        clearCsv("csv/grill_besz.csv")
+
+    exit(1)
 
     # INSERTS:
     ## get aru from firebird and pass to mysql
