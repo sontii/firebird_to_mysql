@@ -265,7 +265,7 @@ def main():
     if lastGrillBznMysql < yesterday:
 
         stampYesteday = f"{yesterday} 23:59:59"
-    
+        lastGrillBznMysql = f"{lastGrillBznMysql} 23:59:59"
 
         getQuery = """ SELECT BZN.BIZONYLAT_DATUM, BZN.EGYSEG_KOD, SUM(BZNTETART.ERTEK), BZNTET.MOZGAS_MINOSITO_KOD
                     FROM BZNTET
