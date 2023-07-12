@@ -16,7 +16,10 @@ logging.basicConfig(filename="log/logfile.log",
                     encoding='utf-8', level=logging.INFO)
 
 
-def queryFb(fetchType, query):
+def queryFb(fetchType, query, trafik):
+    if trafik:
+        fbHost = os.getenv("FBHOSTTRAF")
+
     try:
         connection = fdb.connect(
             host=fbHost,
