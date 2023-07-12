@@ -68,28 +68,33 @@ def main():
 
     # QUERYS:
     # FIREBIRD
-    ## get last id for aru (fetchType, query script)
-    lastAruFb = int(queryFb("one", """ SELECT FIRST 1 ID FROM CIK ORDER BY ID DESC """)[0])
+    ## get last id for aru (fetchType, query script, isTrafik)
+    lastAruFb = int(queryFb("one", """ SELECT FIRST 1 ID FROM CIK ORDER BY ID DESC """, False)[0])
 
     ## last CIKMNY id for ean
-    lastCIKMNYFb = int(queryFb("one", """ SELECT FIRST 1 ID FROM CIKMNY ORDER BY ID DESC """)[0])
+    lastCIKMNYFb = int(queryFb("one", """ SELECT FIRST 1 ID FROM CIKMNY ORDER BY ID DESC """, False)[0])
 
     ## last id for tiltott cikk
-    lastTiltasFb = int(queryFb("one", """ SELECT FIRST 1 ID FROM CIKUZF ORDER BY ID DESC """)[0])
+    lastTiltasFb = int(queryFb("one", """ SELECT FIRST 1 ID FROM CIKUZF ORDER BY ID DESC """, False)[0])
 
     ## last MIN-MAX id in forgalom query by date!!
     lastForgalomFb = queryFb("one", """ SELECT MIN(TRX_ID), MAX(TRX_ID)
                                                FROM BLOKK_TET
-                                               WHERE DATUM BETWEEN '%s' AND '%s' """ % (startDate, endDate))
+                                               WHERE DATUM BETWEEN '%s' AND '%s' """ % (startDate, endDate), False)
+    
+    ## last MIN-MAX id in forgalom query by date!!
+    lastTrafikForgalomFb = queryFb("one", """ SELECT MIN(TRX_ID), MAX(TRX_ID)
+                                               FROM BLOKK_TET
+                                               WHERE DATUM BETWEEN '%s' AND '%s' """ % (startDate, endDate), True)
     
     ## last id for Nomenklatura
-    lastNomenklaturaFb = int(queryFb("one", """ SELECT FIRST 1 ID FROM CCS WHERE HIERARCHIA_SZINT = 5 ORDER BY ID DESC  """)[0])
+    lastNomenklaturaFb = int(queryFb("one", """ SELECT FIRST 1 ID FROM CCS WHERE HIERARCHIA_SZINT = 5 ORDER BY ID DESC  """, False)[0])
 
     ## last id for cikk_csoport
-    lastCikk_csoportFb = int(queryFb("one", """ SELECT FIRST 1 ID FROM CCSCIK ORDER BY ID DESC """)[0])
+    lastCikk_csoportFb = int(queryFb("one", """ SELECT FIRST 1 ID FROM CCSCIK ORDER BY ID DESC """, False)[0])
+  
+  
 
-    ## last id for grillbesz
-    ##lastGrillBznFb = date(queryFb("one", """ SELECT FIRST 1 ID FROM BZN ORDER BY ID DESC """)[0])
 
     # MYSQL
     ## last stored aru id in mysql for aru
@@ -103,6 +108,9 @@ def main():
 
     ## last stored id in mysql for forgalom
     lastForgalomMysql = int(queryMysql("one", """ SELECT max(id) FROM blokk"""))
+
+    ## last stored id in mysql for trafik forgalom
+    lastTrafikForgalomMysql = int(queryMysql("one", """ SELECT max(id) FROM trafik_blokk"""))
 
     ## last stored id in mysql for nomenklatura
     lastNomenklaturaMysql = int(queryMysql("one", """ SELECT max(id) FROM nomenklatura"""))
@@ -130,7 +138,7 @@ def main():
                         JOIN MNY ON MNY.ID=CIKMNY.MNY_ID
                         WHERE CIK.ID BETWEEN %s AND %s AND KPC_ID = 1 """ % ( lastAruMysql + 1, lastAruFb)
 
-        aruToCsv = queryFb( "all", getQuery)
+        aruToCsv = queryFb( "all", getQuery, False)
 
         writeToCsv(aruToCsv, "csv/aru.csv")
 
@@ -151,7 +159,7 @@ def main():
                        WHERE CIKMNY.ID BETWEEN %s AND %s AND CIKKOD.KPC_ID = 3""" % ( lastCIKMNYMysql + 1, lastCIKMNYFb)
 
         ##get result from sql
-        eanToCsv = queryFb("all", getQuery)
+        eanToCsv = queryFb("all", getQuery, False)
 
         if eanToCsv:
             ## write result to csv
@@ -171,7 +179,7 @@ def main():
                        WHERE CIKMNY.ID BETWEEN %s AND %s AND CIKKOD.KPC_ID = 10""" % ( lastCIKMNYMysql + 1, lastCIKMNYFb)
 
         ##get result from sql
-        taltosToCsv = queryFb("all", getQuery)
+        taltosToCsv = queryFb("all", getQuery, False)
         ## write result to csv
         if taltosToCsv:
             writeToCsv(taltosToCsv, "csv/taltos.csv")
@@ -188,7 +196,7 @@ def main():
                        JOIN UZF ON CIKUZF.UZF_ID = UZF.ID
                        WHERE CIKUZF.ID BETWEEN %s AND %s """ % ( lastTiltasMysql + 1, lastTiltasFb)
         ##get result from sql
-        tiltasToCsv = queryFb("all", getQuery)
+        tiltasToCsv = queryFb("all", getQuery, False)
         if tiltasToCsv:
 
             ## write result to csv
@@ -206,7 +214,7 @@ def main():
                        WHERE CCS.ID BETWEEN %s AND %s  """ % ( lastNomenklaturaMysql + 1, lastNomenklaturaFb)
         
         ##get result from sql
-        nomenklaturaToCsv = queryFb("all", getQuery)
+        nomenklaturaToCsv = queryFb("all", getQuery, False)
         if nomenklaturaToCsv:
 
             ## write result to csv
@@ -224,7 +232,7 @@ def main():
                        WHERE CCSCIK.ID BETWEEN %s AND %s """ % ( lastCikk_csoportMysql + 1, lastCikk_csoportFb)
         
         ##get result from sql
-        cikk_csoportToCsv = queryFb("all", getQuery)
+        cikk_csoportToCsv = queryFb("all", getQuery, False)
         if cikk_csoportToCsv:
 
             ## write result to csv
@@ -253,7 +261,7 @@ def main():
                         WHERE DATUM BETWEEN '%s' AND '%s' AND TRX_ID BETWEEN %s AND %s """ % (startDate, endDate, lastForgalomMysql + 1, lastForgalomMaxFb)
 
             ##get result from sql
-            forgalomToCsv = queryFb("all", getQuery)
+            forgalomToCsv = queryFb("all", getQuery, False)
 
             if forgalomToCsv:
 
@@ -264,6 +272,37 @@ def main():
                 insertMysqlBulk('csv/forgalom.csv', 'blokk')
 
                 clearCsv("csv/forgalom.csv")
+
+    ## if have trafik forgalom data run
+    #if lastTrafikForgalomFb:
+    if True:
+        lastTrafikForgalomMinFb = int(lastForgalomFb[0])
+        lastTrafikForgalomMaxFb = int(lastForgalomFb[1])
+
+        if lastTrafikForgalomMaxFb != lastTrafikForgalomMysql:
+            ###
+            if lastTrafikForgalomMinFb > lastTrafikForgalomMysql:
+                lastTrafikForgalomMysql = lastTrafikForgalomMinFb
+
+            ### blokk tetel forgalom
+            getQuery = """ SELECT TRX_ID, EGYSEG, PT_GEP, DATUM, SORSZAM, ARUKOD, MENNY, ME, AFA_KOD, AFA_SZAZ, NYILV_AR, NYILV_ERT,
+                            BFOGY_AR, BFOGY_ERT, NFOGY_ERT, BTENY_AR, BTENY_ERT, NTENY_ERT, NENG_ERT, BENG_ERT, TVR_AZON
+                        FROM BLOKK_TET
+                        WHERE DATUM BETWEEN '%s' AND '%s' AND TRX_ID BETWEEN %s AND %s """ % (startDate, endDate, lastTrafikForgalomMysql + 1, lastTrafikForgalomMaxFb)
+
+            ##get result from sql
+            trafikForgalomToCsv = queryFb("all", getQuery, True)
+
+            if trafikForgalomToCsv:
+
+                ## write result to csv
+                writeToCsv(trafikForgalomToCsv, "csv/forgalom_trafik.csv")
+
+                ## Bulk insert to Mysql, csv - table name
+                insertMysqlBulk('csv/forgalom_trafik.csv', 'trafik_blokk')
+
+                clearCsv("csv/forgalom_trafik.csv")
+
 
     if lastGrillBznMysql < yesterday:
 
@@ -282,7 +321,7 @@ def main():
                         ORDER BY CAST(BZN.BIZONYLAT_DATUM AS DATE)""" %(lastGrillBznMysql + timedelta(days=1), yesterday)
 
         ##get result from sql
-        grillBeszToCsv = queryFb("fetchAll", getQuery)
+        grillBeszToCsv = queryFb("fetchAll", getQuery, False)
         
         if grillBeszToCsv:
 
@@ -315,7 +354,7 @@ def main():
                         GROUP BY CAST(BZN.BIZONYLAT_DATUM AS DATE) """ %(lastLogisztikaMysql + timedelta(days=1),yesterday)
 
         ##get result from sql
-        LogisztikaToCsv = queryFb("fetchAll", getQuery)
+        LogisztikaToCsv = queryFb("fetchAll", getQuery, False)
         
         if LogisztikaToCsv:
 

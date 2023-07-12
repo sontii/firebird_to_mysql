@@ -6,17 +6,20 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# enviroment variables setup
-fbHost = os.getenv("FBHOST")
-fbData = os.getenv("FBDATA")
-fbUser = os.getenv("FBUSER")
-fbPass = os.getenv("FBPASS")
+
 
 logging.basicConfig(filename="log/logfile.log",
                     encoding='utf-8', level=logging.INFO)
 
 
 def queryFb(fetchType, query, trafik):
+    
+    # enviroment variables setup
+    fbHost = os.getenv("FBHOST")
+    fbData = os.getenv("FBDATA")
+    fbUser = os.getenv("FBUSER")
+    fbPass = os.getenv("FBPASS")
+
     if trafik:
         fbHost = os.getenv("FBHOSTTRAF")
 
