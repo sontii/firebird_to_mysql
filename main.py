@@ -113,6 +113,11 @@ def main():
     ## last stored date in mysql for Grill_besz
     lastGrillBznMysql = queryMysql("one", """ SELECT max(datum) FROM grill_besz""")
 
+    ## last stored date in mysql for logisztika
+    lastLogisztikaMysql = queryMysql("one", """ SELECT max(datum) FROM logisztika""")
+
+
+
     # INSERTS:
     ## get aru from firebird and pass to mysql
 
@@ -260,34 +265,26 @@ def main():
 
                 clearCsv("csv/forgalom.csv")
 
-
-
     if lastGrillBznMysql < yesterday:
 
-        stampYesteday = f"{yesterday} 23:59:59"
-        lastGrillBznMysql = f"{lastGrillBznMysql} 23:59:59"
-
-        getQuery = """ SELECT BZN.BIZONYLAT_DATUM, BZN.EGYSEG_KOD, SUM(BZNTETART.ERTEK), BZNTET.MOZGAS_MINOSITO_KOD
-                    FROM BZNTET
-                    JOIN BZNTETART ON BZNTET.ID = BZNTETART.BZNTET_ID
-                    JOIN BZN ON BZNTET.BZN_ID = BZN.ID
-                    WHERE BZN.BIZONYLAT_DATUM BETWEEN '%s' AND '%s'
-                    GROUP BY BZNTETART.BZNARTTPS_ID, BZNTET.MOZGAS_MINOSITO_KOD, BZN.BIZONYLAT_DATUM, BZN.EGYSEG_KOD 
-                    HAVING (BZNTETART.BZNARTTPS_ID = 17 AND (BZNTET.MOZGAS_MINOSITO_KOD= '103' OR BZNTET.MOZGAS_MINOSITO_KOD= '114'))
-                    ORDER BY BZN.BIZONYLAT_DATUM """ %(lastGrillBznMysql, stampYesteday)
+        getQuery = """ SELECT
+                            '' AS new_id,
+                            CAST(BZN.BIZONYLAT_DATUM AS DATE) AS datum,
+                            BZN.EGYSEG_KOD,
+                            SUM(BZNTETART.ERTEK),
+                            BZNTET.MOZGAS_MINOSITO_KOD
+                        FROM BZNTET
+                        JOIN BZNTETART ON BZNTET.ID = BZNTETART.BZNTET_ID
+                        JOIN BZN ON BZNTET.BZN_ID = BZN.ID
+                        WHERE BZN.BIZONYLAT_DATUM BETWEEN '%s' AND '%s'
+                        GROUP BY BZNTETART.BZNARTTPS_ID, BZNTET.MOZGAS_MINOSITO_KOD, BZN.BIZONYLAT_DATUM, BZN.EGYSEG_KOD 
+                        HAVING (BZNTETART.BZNARTTPS_ID = 17 AND (BZNTET.MOZGAS_MINOSITO_KOD= '103' OR BZNTET.MOZGAS_MINOSITO_KOD= '114'))
+                        ORDER BY CAST(BZN.BIZONYLAT_DATUM AS DATE)""" %(lastGrillBznMysql + timedelta(days=1), yesterday)
 
         ##get result from sql
         grillBeszToCsv = queryFb("fetchAll", getQuery)
         
         if grillBeszToCsv:
-
-            for index, data in enumerate(grillBeszToCsv):
-                row = list(data)
-                row[0] = row[0].date()
-                row.insert(0, '')
-                data = tuple(row)
-
-                grillBeszToCsv[index] = data
 
             ## write result to csv
             writeToCsv(grillBeszToCsv, "csv/grill_besz.csv")
@@ -297,6 +294,39 @@ def main():
             insertMysqlBulk('csv/grill_besz.csv', 'grill_besz')
 
             clearCsv("csv/grill_besz.csv")
+
+
+   
+    if lastLogisztikaMysql < yesterday:
+
+        getQuery = """ SELECT
+                            '' AS new_id,
+                            CAST(BZN.BIZONYLAT_DATUM AS DATE) AS datum,
+                            Sum(CASE WHEN BZNARTTPS.ID = (19) AND BZNTPSHIS.KOD = 'BEVGYAR' THEN BZNTETART.ERTEK END) AS forg_brutto,
+                            Sum(CASE WHEN BZNARTTPS.ID = (18) AND BZNTPSHIS.KOD = 'BEVGYAR' THEN BZNTETART.ERTEK END) AS forg_netto,
+                            Sum(CASE WHEN BZNARTTPS.ID = (17) AND BZNTPSHIS.KOD = 'KIADGYAR' THEN BZNTETART.ERTEK END) AS forg_netto_nyilv,
+                            Sum(CASE WHEN BZNARTTPS.ID = (18) AND BZNTPSHIS.KOD = 'BEVGYAR' THEN BZNTET.MENNYISEG END) AS vevo	
+                        FROM BZN
+                        JOIN BZNTET ON BZN.ID = BZNTET.BZN_ID
+                        JOIN BZNTETART ON BZNTET.ID = BZNTETART.BZNTET_ID
+                        JOIN BZNARTTPS ON BZNTETART.BZNARTTPS_ID = BZNARTTPS.ID
+                        JOIN BZNTPSHIS ON BZNTPSHIS.ID = BZN.BZNTPSHIS_ID
+                        WHERE BZN.BIZONYLAT_DATUM BETWEEN '%s' AND '%s'
+                        GROUP BY CAST(BZN.BIZONYLAT_DATUM AS DATE) """ %(lastLogisztikaMysql + timedelta(days=1),yesterday)
+
+        ##get result from sql
+        LogisztikaToCsv = queryFb("fetchAll", getQuery)
+        
+        if LogisztikaToCsv:
+
+            ## write result to csv
+            writeToCsv(LogisztikaToCsv, "csv/logisztika.csv")
+
+            
+            ## Bulk insert to Mysql, csv - table name
+            insertMysqlBulk('csv/logisztika.csv', 'logisztika')
+
+            clearCsv("csv/logisztika.csv")
 
 
     end_time = datetime.now()
