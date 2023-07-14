@@ -335,8 +335,10 @@ def main():
             clearCsv("csv/grill_besz.csv")
 
 
-   
+    print(lastLogisztikaMysql + timedelta(days=1),yesterday)
     if lastLogisztikaMysql < yesterday:
+
+        
 
         getQuery = """ SELECT
                             '' AS new_id,
