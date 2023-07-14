@@ -274,10 +274,9 @@ def main():
                 clearCsv("csv/forgalom.csv")
 
     ## if have trafik forgalom data run
-    #if lastTrafikForgalomFb:
-    if True:
-        lastTrafikForgalomMinFb = int(lastForgalomFb[0])
-        lastTrafikForgalomMaxFb = int(lastForgalomFb[1])
+    if lastTrafikForgalomFb:
+        lastTrafikForgalomMinFb = int(lastTrafikForgalomFb[0])
+        lastTrafikForgalomMaxFb = int(lastTrafikForgalomFb[1])
 
         if lastTrafikForgalomMaxFb != lastTrafikForgalomMysql:
             ###
@@ -335,10 +334,7 @@ def main():
             clearCsv("csv/grill_besz.csv")
 
 
-    print(lastLogisztikaMysql + timedelta(days=1),yesterday)
     if lastLogisztikaMysql < yesterday:
-
-        
 
         getQuery = """ SELECT
                             '' AS new_id,
