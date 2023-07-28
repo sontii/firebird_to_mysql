@@ -332,7 +332,7 @@ def main():
             insertMysqlBulk('csv/grill_besz.csv', 'grill_besz')
 
             clearCsv("csv/grill_besz.csv")
-
+    
 
     if lastLogisztikaMysql < yesterday:
 
@@ -348,7 +348,7 @@ def main():
                         JOIN BZNTETART ON BZNTET.ID = BZNTETART.BZNTET_ID
                         JOIN BZNARTTPS ON BZNTETART.BZNARTTPS_ID = BZNARTTPS.ID
                         JOIN BZNTPSHIS ON BZNTPSHIS.ID = BZN.BZNTPSHIS_ID
-                        WHERE BZN.BIZONYLAT_DATUM BETWEEN '%s' AND '%s'
+                        WHERE BZN.BIZONYLAT_DATUM BETWEEN '%s' AND '%s 23:59:59'
                         GROUP BY CAST(BZN.BIZONYLAT_DATUM AS DATE) """ %(lastLogisztikaMysql + timedelta(days=1),yesterday)
 
         ##get result from sql
