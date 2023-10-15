@@ -46,6 +46,9 @@ mysql-connector-python-8.0.30
 holidays==0.16
 python-dotenv==0.21.0
 
+need firebird client library
+ubuntu :sudo apt install libfbclient2
+
 ---
 
 ### **Files and folders:**

@@ -17,17 +17,16 @@ envSender = os.getenv("SENDER")
 envSMTP = os.getenv("SMTP")
 
 def errorMail(err):
-   sender = envSender
-   recipients = errorRecipient
+    body = f"Hiba - ellenőrizd a logot: \n {err}"
+    msg = MIMEText(body.encode('utf-8'), "plain", "utf-8")
+    msg['Subject'] = 'FB - MySQL hiba'
+    msg['From'] = envSender
+    msg['To'] = errorRecipient
 
-   message = MIMEText( f"Hiba - ellenőrizd a logot: \n {err}")
-
-   message['From'] = envSender
-   message['To'] = errorRecipientSTR
-   message['Subject'] = 'FB- MySQL hiba'
-
-   try:
-      smtpObj = smtplib.SMTP(envSMTP)
-      smtpObj.sendmail(sender, recipients, message.as_string())
-   except smtplib.SMTPException as e:
-      logging.info(" " + datetime.now().strftime('%Y.%m.%d %H:%M:%S') + " cannot send email: " + f"{e}")
+    try:
+	with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+	    server.login('f.ferenc@lazarteam.hu', envSmtpPass)
+	    server.sendmail(envSender, recipients, msg.as_string())
+	print("Üzenet elküldve!")
+    except smtplib.SMTPException as e:
+        logging.info(" " + datetime.now().strftime('%Y.%m.%d %H:%M:%S') + " Nem sikerült elküldeni a levelet hiba: " + f"{e}")
