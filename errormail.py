@@ -9,9 +9,6 @@ load_dotenv()
 
 logging.basicConfig(filename="log/logfile.log", level=logging.INFO)
 
-errorRecipient = []
-
-errorRecipient.append(os.getenv("RECIPIENT"))
 recipient = os.getenv("RECIPIENT")
 envSender = os.getenv("SENDER")
 envSMTP = os.getenv("SMTP")
@@ -27,7 +24,7 @@ def errorMail(err):
     try:
         with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
             server.login('f.ferenc@lazarteam.hu', envSmtpPass)
-            server.sendmail(envSender, recipients, msg.as_string())
+            server.sendmail(envSender, recipient, msg.as_string())
         print("Üzenet elküldve!")
     except smtplib.SMTPException as e:
         logging.info(" " + datetime.now().strftime('%Y.%m.%d %H:%M:%S') + " Nem sikerült elküldeni a levelet hiba: " + f"{e}")
