@@ -19,7 +19,7 @@ def errorMail(err):
     msg = MIMEText(body.encode('utf-8'), "plain", "utf-8")
     msg['Subject'] = 'FB - MySQL hiba'
     msg['From'] = envSender
-    msg['To'] = errorRecipient
+    msg['To'] = recipient
 
     try:
         with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
