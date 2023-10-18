@@ -12,7 +12,7 @@ logging.basicConfig(filename="log/logfile.log", level=logging.INFO)
 errorRecipient = []
 
 errorRecipient.append(os.getenv("RECIPIENT"))
-errorRecipientSTR = os.getenv("RECIPIENT")
+recipient = os.getenv("RECIPIENT")
 envSender = os.getenv("SENDER")
 envSMTP = os.getenv("SMTP")
 envSmtpPass = os.getenv("SMTP_PASS")
