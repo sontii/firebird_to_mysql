@@ -15,6 +15,7 @@ errorRecipient.append(os.getenv("RECIPIENT"))
 errorRecipientSTR = os.getenv("RECIPIENT")
 envSender = os.getenv("SENDER")
 envSMTP = os.getenv("SMTP")
+envSmtpPass = os.getenv("SMTP_PASS")
 
 def errorMail(err):
     body = f"Hiba - ellenőrizd a logot: \n {err}"
