@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  firebird_to_mysql:
+    build: .
+    container_name: firebird_to_mysql
+    volumes:
+      - /share/docker/firebird_to_mysql/log:/app/log  # Persist logs outside the container
+      - /share/docker/firebird_to_mysql/csv:/app/csv  # If CSVs need to be accessible

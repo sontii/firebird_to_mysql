@@ -367,7 +367,7 @@ def main():
 
 
     end_time = datetime.now()
-    print('start query' + f" Duration: {end_time - start_time}")
+    logging.info('start query' + f" Duration: {end_time - start_time}")
 
     ## keep logs short. if need:
     ## end_time = datetime.now()
