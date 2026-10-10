@@ -166,7 +166,7 @@ def main():
             writeToCsv(eanToCsv, "csv/ean.csv")
 
             ## Bulk insert to Mysql, csv - table name
-            insertMysqlBulk('csv/ean.csv', 'ean')
+            insertMysqlBulk('csv/ean.csv', 'ean', '(arukod_id, cikmny_id, ean_kod)')
 
             clearCsv("csv/ean.csv")
 
@@ -185,7 +185,7 @@ def main():
             writeToCsv(taltosToCsv, "csv/taltos.csv")
 
             ## Bulk insert to Mysql, csv - table name
-            insertMysqlBulk('csv/taltos.csv', 'taltos')
+            insertMysqlBulk('csv/taltos.csv', 'taltos', '(arukod_id, taltos_kod)')
 
             clearCsv("csv/taltos.csv")
 
@@ -203,7 +203,7 @@ def main():
             writeToCsv(tiltasToCsv, "csv/tiltas.csv")
 
             ## Bulk insert to Mysql, csv - table name
-            insertMysqlBulk('csv/tiltas.csv', 'tiltas')
+            insertMysqlBulk('csv/tiltas.csv', 'tiltas', '(tiltas_id, arukod_id, tiltas_nev_id, tiltas_nev)')
 
             clearCsv("csv/tiltas.csv")
 

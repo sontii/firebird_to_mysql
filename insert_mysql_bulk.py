@@ -16,8 +16,9 @@ mysqlUser = os.getenv("MYSQLUSER")
 mysqlPass = os.getenv("MYSQLPASS")
 
 
-## passing parameters number, csv file path, boltok, fetch all or one, query string
-def insertMysqlBulk(readFile, tableName):
+## passing parameters csv file path, table name, optional column list
+## columns needed when csv field order differs from table columns (eg. auto id first)
+def insertMysqlBulk(readFile, tableName, columns=""):
     try:
         connection = mysql.connector.connect(
             host=mysqlHost,
@@ -32,7 +33,8 @@ def insertMysqlBulk(readFile, tableName):
         load_sql = f"""LOAD DATA LOCAL INFILE '{readFile}'
                         INTO TABLE {tableName}
                         FIELDS TERMINATED BY ','
-                        OPTIONALLY ENCLOSED BY '"' """
+                        OPTIONALLY ENCLOSED BY '"'
+                        {columns} """
 
         cursor = connection.cursor()
 
