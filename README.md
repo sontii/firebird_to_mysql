@@ -20,16 +20,26 @@ data tables to copy:
 - ean
 - taltos
 - tiltas
-- forgalom
+- nomenklatura, cikk_csoport
+- grill_besz, logisztika
+
+receipt lines (BLOKK_TET) are not copied, only their daily totals:
+- blokk_sum, trafik_blokk_sum, grill
+- summed in Firebird, the last 7 days are recomputed every run (lines can arrive a day late)
 
 ---
 
 ### **How to use:**
 
-Use with cron, daily run.
+Docker container keeps running, scheduler.py starts main.py every day
+at RUN_AT (docker-compose.yml, local time Europe/Budapest).
+docker compose up -d --build
+
+Manual run:
 python main.py
 
-If we have missing data, we can run with specific date arguments:
+If we have missing data, we can run with specific date arguments
+(summaries of this range are recomputed):
 python main.py arg1 arg2 format(YYYY.MM.dd)
 first argument is start date the second is the end date.
 Start date cannot be later than end date.

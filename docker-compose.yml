@@ -4,6 +4,9 @@ services:
   firebird_to_mysql:
     build: .
     container_name: firebird_to_mysql
+    restart: unless-stopped
+    environment:
+      - RUN_AT=06:00  # daily run time(s), eg. "04:00,13:00"
     volumes:
       - /share/docker/firebird_to_mysql/log:/app/log  # Persist logs outside the container
       - /share/docker/firebird_to_mysql/csv:/app/csv  # If CSVs need to be accessible
