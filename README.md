@@ -17,8 +17,7 @@ master data tables:
 - ean
 - taltos
 - tiltas
-- nomenklatura, cikk_csoport
-- grill_besz, logisztika
+- grill_besz
 
 Receipt lines (BLOKK_TET) are **not copied**, only their daily totals:
 - blokk_sum – main Laurel (FBHOST)
@@ -69,8 +68,26 @@ Needs the Firebird client library (in the Docker image: `libfbclient2`).
 - query_fb.py, query_mysql.py – Firebird / MySQL queries
 - insert_mysql.py – Firebird rows to MySQL (table, column list, rows)
 - errormail.py – error mail
+- dblog.py – log records to the shared applog database
 - DOTEnv – .env template
 - log – logfile.log
+
+---
+
+### **Log database (applog)**
+
+Every logging record goes to the shared MySQL database `applog` as well
+(`dblog.py`, LOGDB_* in .env, project name: LOG_PROJEKT in docker-compose.yml).
+The file log stays; if applog is down, the run goes on.
+
+- `applog.futas` – one row per scheduled run: projekt, kezdet, veg, kilepesi_kod, statusz (fut / ok / hiba)
+- `applog.log` – log rows: ido, projekt, futas_id, szint, uzenet, reszletek (traceback), gep
+- times are UTC (the MySQL server runs in UTC)
+- user `applog`: SELECT, INSERT, UPDATE on applog.* – for every project and the viewer app
+
+Test one run right now:
+
+    docker compose run --rm firebird_to_mysql python scheduler.py --once
 
 ---
 

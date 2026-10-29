@@ -7,5 +7,6 @@ services:
     restart: unless-stopped
     environment:
       - RUN_AT=06:00  # daily run time(s), eg. "04:00,13:00"
+      - LOG_PROJEKT=firebird_to_mysql  # name in the applog database
     volumes:
       - /share/docker/firebird_to_mysql/log:/app/log  # Persist logs outside the container
