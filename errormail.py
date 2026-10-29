@@ -22,9 +22,10 @@ def errorMail(err):
     msg['To'] = recipient
 
     try:
-        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=30) as server:
             server.login('f.ferenc@lazarteam.hu', envSmtpPass)
             server.sendmail(envSender, recipient, msg.as_string())
         print("Üzenet elküldve!")
-    except smtplib.SMTPException as e:
+    ## OSError: network errors too (no DNS, no route), not only SMTP answers
+    except (smtplib.SMTPException, OSError) as e:
         logging.info(" " + datetime.now().strftime('%Y.%m.%d %H:%M:%S') + " Nem sikerült elküldeni a levelet hiba: " + f"{e}")

@@ -10,7 +10,7 @@ Copies daily data from Laurel (Firebird) to the BI MySQL database (`lazar`).
 Written in python.
 
 Master data: both databases' last ids are compared, the missing rows are
-written to a temporary csv, loaded to MySQL (`LOAD DATA`), then the csv is cleared.
+inserted to MySQL directly (`INSERT IGNORE` with column list, no temporary files).
 
 master data tables:
 - cikk (aru)
@@ -67,12 +67,9 @@ Needs the Firebird client library (in the Docker image: `libfbclient2`).
 - scheduler.py – keeps the container running, starts main.py at RUN_AT
 - sum_mysql.py – daily totals from Laurel to blokk_sum, trafik_blokk_sum, grill
 - query_fb.py, query_mysql.py – Firebird / MySQL queries
-- insert_mysql_bulk.py – csv to MySQL with `LOAD DATA` (column list when the table has an auto id)
-- writetocsv.py – query result to csv (`\n` line end, as `LOAD DATA` expects)
+- insert_mysql.py – Firebird rows to MySQL (table, column list, rows)
 - errormail.py – error mail
-- insert_mysql.py – old row by row insert, not used
 - DOTEnv – .env template
-- csv – temporary csv files
 - log – logfile.log
 
 ---

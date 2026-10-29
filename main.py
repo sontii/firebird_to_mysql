@@ -12,13 +12,8 @@ from dotenv import load_dotenv
 
 from query_fb import *
 from query_mysql import *
-from insert_mysql_bulk import *
-from writetocsv import *
+from insert_mysql import *
 from sum_mysql import *
-
-### from insert_mysql import *
-### ## passing parameters number, csv file path, fetch all or one, query string
-### insertMysql( 3, "ean.csv", "all", """INSERT INTO ean (arukod_id, cikmny_id, ean_kod) VALUES (""" )
 
 load_dotenv()
 
@@ -29,13 +24,6 @@ envBoltok = os.getenv('BOLTOK').split(",")
 boltok = {}
 for bolt in envBoltok:
     boltok[bolt] = None
-
-### clear csv file after insert
-def clearCsv(fileToClear):
-    # opening the file with w+ mode truncates the file
-    f = open(fileToClear, "w+")
-    f.close()
-
 
 ### validate date format befor using it
 def validateDate(date_text):
@@ -124,14 +112,10 @@ def main():
                         JOIN MNY ON MNY.ID=CIKMNY.MNY_ID
                         WHERE CIK.ID BETWEEN %s AND %s AND KPC_ID = 1 """ % ( lastAruMysql + 1, lastAruFb)
 
-        aruToCsv = queryFb( "all", getQuery, False)
+        aruRows = queryFb( "all", getQuery, False)
 
-        writeToCsv(aruToCsv, "csv/aru.csv")
-
-        ## Bulk insert to Mysql, csv - table name
-        insertMysqlBulk('csv/aru.csv', 'cikk')
-
-        clearCsv("csv/aru.csv")
+        ## insert to Mysql: table, columns, rows
+        insertMysql('cikk', 'cikk_id, cikk_kod, rovid_nev, me, afa_id', aruRows)
 
     ## get ean and taltos from firebird and pass to mysql
     if lastCIKMNYFb != lastCIKMNYMysql:
@@ -145,16 +129,11 @@ def main():
                        WHERE CIKMNY.ID BETWEEN %s AND %s AND CIKKOD.KPC_ID = 3""" % ( lastCIKMNYMysql + 1, lastCIKMNYFb)
 
         ##get result from sql
-        eanToCsv = queryFb("all", getQuery, False)
+        eanRows = queryFb("all", getQuery, False)
 
-        if eanToCsv:
-            ## write result to csv
-            writeToCsv(eanToCsv, "csv/ean.csv")
-
-            ## Bulk insert to Mysql, csv - table name
-            insertMysqlBulk('csv/ean.csv', 'ean', '(arukod_id, cikmny_id, ean_kod)')
-
-            clearCsv("csv/ean.csv")
+        if eanRows:
+            ## insert to Mysql: table, columns, rows
+            insertMysql('ean', 'arukod_id, cikmny_id, ean_kod', eanRows)
 
         ### TALTOS
         getQuery = """ SELECT CIK_ID, CIKKOD.KOD
@@ -165,15 +144,10 @@ def main():
                        WHERE CIKMNY.ID BETWEEN %s AND %s AND CIKKOD.KPC_ID = 10""" % ( lastCIKMNYMysql + 1, lastCIKMNYFb)
 
         ##get result from sql
-        taltosToCsv = queryFb("all", getQuery, False)
-        ## write result to csv
-        if taltosToCsv:
-            writeToCsv(taltosToCsv, "csv/taltos.csv")
-
-            ## Bulk insert to Mysql, csv - table name
-            insertMysqlBulk('csv/taltos.csv', 'taltos', '(arukod_id, taltos_kod)')
-
-            clearCsv("csv/taltos.csv")
+        taltosRows = queryFb("all", getQuery, False)
+        if taltosRows:
+            ## insert to Mysql: table, columns, rows
+            insertMysql('taltos', 'arukod_id, taltos_kod', taltosRows)
 
     if lastTiltasFb != lastTiltasMysql:
         ### tiltott cikkek
@@ -182,16 +156,11 @@ def main():
                        JOIN UZF ON CIKUZF.UZF_ID = UZF.ID
                        WHERE CIKUZF.ID BETWEEN %s AND %s """ % ( lastTiltasMysql + 1, lastTiltasFb)
         ##get result from sql
-        tiltasToCsv = queryFb("all", getQuery, False)
-        if tiltasToCsv:
+        tiltasRows = queryFb("all", getQuery, False)
+        if tiltasRows:
 
-            ## write result to csv
-            writeToCsv(tiltasToCsv, "csv/tiltas.csv")
-
-            ## Bulk insert to Mysql, csv - table name
-            insertMysqlBulk('csv/tiltas.csv', 'tiltas', '(tiltas_id, arukod_id, tiltas_nev_id, tiltas_nev)')
-
-            clearCsv("csv/tiltas.csv")
+            ## insert to Mysql: table, columns, rows
+            insertMysql('tiltas', 'tiltas_id, arukod_id, tiltas_nev_id, tiltas_nev', tiltasRows)
 
     if lastNomenklaturaFb != lastNomenklaturaMysql:
         ### nomenklatura besorolas
@@ -200,16 +169,11 @@ def main():
                        WHERE CCS.ID BETWEEN %s AND %s  """ % ( lastNomenklaturaMysql + 1, lastNomenklaturaFb)
         
         ##get result from sql
-        nomenklaturaToCsv = queryFb("all", getQuery, False)
-        if nomenklaturaToCsv:
+        nomenklaturaRows = queryFb("all", getQuery, False)
+        if nomenklaturaRows:
 
-            ## write result to csv
-            writeToCsv(nomenklaturaToCsv, "csv/nomenklatura.csv")
-
-            ## Bulk insert to Mysql, csv - table name
-            insertMysqlBulk('csv/nomenklatura.csv', 'nomenklatura')
-
-            clearCsv("csv/nomenklatura.csv")
+            ## insert to Mysql: table, columns, rows
+            insertMysql('nomenklatura', 'id, kod, nev, szint', nomenklaturaRows)
     
     if lastCikk_csoportFb != lastCikk_csoportMysql:
         ### nomenklatura besorolas
@@ -218,22 +182,16 @@ def main():
                        WHERE CCSCIK.ID BETWEEN %s AND %s """ % ( lastCikk_csoportMysql + 1, lastCikk_csoportFb)
         
         ##get result from sql
-        cikk_csoportToCsv = queryFb("all", getQuery, False)
-        if cikk_csoportToCsv:
+        cikk_csoportRows = queryFb("all", getQuery, False)
+        if cikk_csoportRows:
 
-            ## write result to csv
-            writeToCsv(cikk_csoportToCsv, "csv/cikk_csoport.csv")
-
-            ## Bulk insert to Mysql, csv - table name
-            insertMysqlBulk('csv/cikk_csoport.csv', 'cikk_csoport')
-
-            clearCsv("csv/cikk_csoport.csv")
+            ## insert to Mysql: table, columns, rows
+            insertMysql('cikk_csoport', 'id, nomen_id, arukod_id', cikk_csoportRows)
     
 
     if lastGrillBznMysql < yesterday:
 
         getQuery = """ SELECT
-                            '' AS new_id,
                             CAST(BZN.BIZONYLAT_DATUM AS DATE) AS datum,
                             BZN.EGYSEG_KOD,
                             SUM(BZNTETART.ERTEK),
@@ -247,24 +205,17 @@ def main():
                         ORDER BY CAST(BZN.BIZONYLAT_DATUM AS DATE)""" %(lastGrillBznMysql + timedelta(days=1), yesterday)
 
         ##get result from sql
-        grillBeszToCsv = queryFb("fetchAll", getQuery, False)
+        grillBeszRows = queryFb("fetchAll", getQuery, False)
         
-        if grillBeszToCsv:
+        if grillBeszRows:
 
-            ## write result to csv
-            writeToCsv(grillBeszToCsv, "csv/grill_besz.csv")
-
-            
-            ## Bulk insert to Mysql, csv - table name
-            insertMysqlBulk('csv/grill_besz.csv', 'grill_besz')
-
-            clearCsv("csv/grill_besz.csv")
+            ## insert to Mysql: table, columns, rows
+            insertMysql('grill_besz', 'datum, egyseg, ertek, minosito_kod', grillBeszRows)
     
 
     if lastLogisztikaMysql < yesterday:
 
         getQuery = """ SELECT
-                            '' AS new_id,
                             CAST(BZN.BIZONYLAT_DATUM AS DATE) AS datum,
                             Sum(CASE WHEN BZNARTTPS.ID = (19) AND BZNTPSHIS.KOD = 'BEVGYAR' THEN BZNTETART.ERTEK END) AS forg_brutto,
                             Sum(CASE WHEN BZNARTTPS.ID = (18) AND BZNTPSHIS.KOD = 'BEVGYAR' THEN BZNTETART.ERTEK END) AS forg_netto,
@@ -279,18 +230,12 @@ def main():
                         GROUP BY CAST(BZN.BIZONYLAT_DATUM AS DATE) """ %(lastLogisztikaMysql + timedelta(days=1),yesterday)
 
         ##get result from sql
-        LogisztikaToCsv = queryFb("fetchAll", getQuery, False)
+        logisztikaRows = queryFb("fetchAll", getQuery, False)
         
-        if LogisztikaToCsv:
+        if logisztikaRows:
 
-            ## write result to csv
-            writeToCsv(LogisztikaToCsv, "csv/logisztika.csv")
-
-            
-            ## Bulk insert to Mysql, csv - table name
-            insertMysqlBulk('csv/logisztika.csv', 'logisztika')
-
-            clearCsv("csv/logisztika.csv")
+            ## insert to Mysql: table, columns, rows
+            insertMysql('logisztika', 'datum, brutto_fogy, netto_fogy, netto_nyilv, vevo', logisztikaRows)
 
 
     ## daily summaries (blokk_sum, trafik_blokk_sum, grill) straight from Laurel

@@ -2,7 +2,6 @@ from errormail import *
 from datetime import datetime
 import logging
 import mysql.connector
-import csv
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -16,8 +15,12 @@ mysqlUser = os.getenv("MYSQLUSER")
 mysqlPass = os.getenv("MYSQLPASS")
 
 
-## passing parameters number, csv file path, boltok, fetch all or one, query string
-def insertMysql(valuesNr, readFile, fetchType, query):
+## passing parameters table name, column list ("a, b, c"), rows from Firebird
+## INSERT IGNORE: duplicate keys are skipped, same as the former LOAD DATA LOCAL
+def insertMysql(tableName, columns, rows):
+    if not rows:
+        return ()
+
     try:
         connection = mysql.connector.connect(
             host=mysqlHost,
@@ -29,31 +32,12 @@ def insertMysql(valuesNr, readFile, fetchType, query):
 
         cursor = connection.cursor()
 
-        ## open csv file
-        with open(readFile, encoding="utf-8") as csv_file:
-            csv_reader = csv.reader(csv_file, delimiter=",")
-            next(csv_reader)
+        placeholders = ", ".join(["%s"] * len(columns.split(",")))
+        query = f"INSERT IGNORE INTO {tableName} ({columns}) VALUES ({placeholders})"
 
-            ## cannot pass string %s params, build up here VALUES part
-            for value in range(0, valuesNr):
-                query = query + " %s,"
-            ## remove tail ","
-            query = query[:-1]
-            query = query + ")"
-
-            ## read 1000 row then execute many, and repeat
-            rows = []
-            row_count = 0
-            for row in csv_reader:
-                row_count += 1
-                rows.append(row)
-                if row_count == 1000:
-                    cursor.executemany(query, rows)
-                    rows = []
-                    row_count = 0
-	
-            if rows:
-                cursor.executemany(query, rows)
+        ## 1000 rows per statement
+        for start in range(0, len(rows), 1000):
+            cursor.executemany(query, rows[start:start + 1000])
 
         ## after insert need commit
         connection.commit()
@@ -63,7 +47,7 @@ def insertMysql(valuesNr, readFile, fetchType, query):
         return ()
 
     except Exception as err:
-        logging.error(" " + datetime.now().strftime("%Y.%m.%d %H:%M:%S") 
-                        + " Error while connecting to MySQL" + f"{readFile} hiba: {err}")
+        logging.error(" " + datetime.now().strftime("%Y.%m.%d %H:%M:%S")
+                        + " Error while inserting to MySQL " + f"{tableName} hiba: {err}")
         errorMail(err)
         exit(1)
